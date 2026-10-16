@@ -36,9 +36,9 @@ export class Hud {
         energy: q('.energy i'),
         score: q('.score'),
         combo: root.querySelector<HTMLElement>(`.combo[data-p="${i}"]`)!,
-        ghostHp: RULES.maxHp,
+        ghostHp: 0,
         ghostDelay: 0,
-        lastHp: RULES.maxHp,
+        lastHp: 0,
         comboFade: 0,
       };
     };
@@ -85,14 +85,14 @@ export class Hud {
   update(w: World, dtF: number): void {
     for (const f of w.fighters) {
       const s = this.sides[f.id];
-      const hp = f.hp / RULES.maxHp;
+      const hp = f.hp / f.maxHp;
       if (f.hp < s.lastHp) s.ghostDelay = 24;
-      if (f.hp > s.lastHp) s.ghostHp = f.hp;
+      if (f.hp > s.lastHp || s.ghostHp === 0) s.ghostHp = f.hp;
       s.lastHp = f.hp;
       if (s.ghostDelay > 0) s.ghostDelay -= dtF;
-      else if (s.ghostHp > f.hp) s.ghostHp = Math.max(f.hp, s.ghostHp - RULES.maxHp * 0.012 * dtF);
+      else if (s.ghostHp > f.hp) s.ghostHp = Math.max(f.hp, s.ghostHp - f.maxHp * 0.012 * dtF);
       s.fill.style.transform = `scaleX(${hp})`;
-      s.ghost.style.transform = `scaleX(${s.ghostHp / RULES.maxHp})`;
+      s.ghost.style.transform = `scaleX(${s.ghostHp / f.maxHp})`;
       s.guard.style.transform = `scaleX(${f.guard / RULES.maxGuard})`;
       s.guard.parentElement!.classList.toggle('low', f.guard < 25);
       s.energy.style.transform = `scaleX(${f.energy / RULES.maxEnergy})`;

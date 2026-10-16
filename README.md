@@ -6,7 +6,7 @@ A minimal, fast, anime-feeling stickman fighting game for two. SVG + CSS in the 
 npm install
 npm run dev        # game + WebSocket on http://localhost:5173 (also on your LAN, so phones can join)
 npm run play       # production build, served with the WebSocket on :3000
-npm test           # sim, API and server tests
+npm test           # sim, API, server, AI and storage tests
 npm run typecheck
 ```
 
@@ -21,6 +21,8 @@ Open <http://localhost:5173/sandbox.html> for the pose and animation sandbox.
 | guard · dash | `U I` | `; '` |
 
 `T` theme · `M` sound · `Esc` menu · `R` restart (local) · `` ` `` hitboxes. Phones get on-screen buttons.
+
+**Students:** AI opponents that learn from you, on your device, offline. Play them, tune how hard they are (randomness and reaction sliders), or watch two of them fight. They tidy their own storage, and the Students screen shows what they use. See [docs/ai.md](docs/ai.md).
 
 **On a phone:** landscape and fullscreen, with a thumb-stick and buttons laid over the game. It is an installable PWA, so after the first visit **local play works offline**; only *Play online* needs a network and the game server. See [mobile and PWA](docs/mobile-and-pwa.md).
 

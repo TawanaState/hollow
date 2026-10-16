@@ -26,11 +26,13 @@ export interface Session {
 export class LocalSession implements Session {
   readonly kind = 'local';
   readonly game: Game;
+  /** Playback speed multiplier (watching AI vs AI can run faster). */
+  speed = 1;
   private acc = 0;
   private stepListeners: ((w: World) => void)[] = [];
 
-  constructor(bus: EventBus, p1: InputSource, p2: InputSource) {
-    this.game = new Game(bus);
+  constructor(bus: EventBus, p1: InputSource, p2: InputSource, hpScale?: number) {
+    this.game = new Game(bus, hpScale);
     this.game.router.attach(0, p1);
     this.game.router.attach(1, p2);
   }
@@ -47,7 +49,7 @@ export class LocalSession implements Session {
   }
 
   update(dtMs: number, timeScale: number): number {
-    this.acc = Math.min(this.acc + dtMs * timeScale, FRAME_MS * 6);
+    this.acc = Math.min(this.acc + dtMs * timeScale * this.speed, FRAME_MS * 16);
     while (this.acc >= FRAME_MS) {
       this.acc -= FRAME_MS;
       for (const fn of this.stepListeners) fn(this.game.world);

@@ -54,7 +54,7 @@ describe('hits', () => {
     expect(hit.atk).toBe(0);
     expect(hit.damage).toBe(sk.damage);
     expect(hit.tier).toBe('light');
-    expect(w.fighters[1].hp).toBe(RULES.maxHp - sk.damage);
+    expect(w.fighters[1].hp).toBe(w.fighters[1].maxHp - sk.damage);
     expect(w.fighters[1].state).toBe('hitstun');
     expect(w.hitstop).toBeGreaterThan(0);
   });
@@ -82,7 +82,7 @@ describe('hits', () => {
     const w = fight(400);
     const events = [...tap(w, Btn.LIGHT), ...run(w, 20)];
     expect(ofType(events, 'HIT')).toHaveLength(0);
-    expect(w.fighters[1].hp).toBe(RULES.maxHp);
+    expect(w.fighters[1].hp).toBe(w.fighters[1].maxHp);
   });
 });
 
@@ -150,7 +150,7 @@ describe('guarding', () => {
     const block = ofType(events, 'BLOCK')[0];
     expect(block).toBeDefined();
     expect(ofType(events, 'HIT')).toHaveLength(0);
-    expect(w.fighters[1].hp).toBeGreaterThan(RULES.maxHp - SKILLS.jab.damage);
+    expect(w.fighters[1].hp).toBeGreaterThan(w.fighters[1].maxHp - SKILLS.jab.damage);
     expect(w.fighters[1].guard).toBeLessThan(guardBefore);
     expect(w.fighters[1].state).toBe('blockstun');
   });
@@ -160,7 +160,7 @@ describe('guarding', () => {
     const events = [...run(w, 1, Btn.LIGHT, Btn.GUARD), ...run(w, 8, N, Btn.GUARD)];
     expect(ofType(events, 'PARRY')).toHaveLength(1);
     expect(w.fighters[0].state).toBe('hitstun');
-    expect(w.fighters[1].hp).toBe(RULES.maxHp);
+    expect(w.fighters[1].hp).toBe(w.fighters[1].maxHp);
   });
 
   it('a low attack beats standing guard, but is blocked crouching', () => {
@@ -265,7 +265,7 @@ describe('KO and rounds', () => {
     expect(w.score).toEqual([1, 0]);
     run(w, RULES.koResetF + 40); // + the KO hitstop
     expect(w.phase).not.toBe('ko');
-    expect(w.fighters[1].hp).toBe(RULES.maxHp);
+    expect(w.fighters[1].hp).toBe(w.fighters[1].maxHp);
     expect(w.score).toEqual([1, 0]);
   });
 });
@@ -284,6 +284,6 @@ describe('determinism', () => {
     }
     const b = runReplay(rec.toReplay()).world;
     expect(JSON.stringify(b)).toBe(JSON.stringify(a));
-    expect(a.fighters[0].hp + a.fighters[1].hp).toBeLessThan(2 * RULES.maxHp); // something actually happened
+    expect(a.fighters[0].hp + a.fighters[1].hp).toBeLessThan(a.fighters[0].maxHp + a.fighters[1].maxHp); // something actually happened
   });
 });

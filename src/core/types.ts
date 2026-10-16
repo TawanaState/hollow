@@ -23,6 +23,8 @@ export interface Fighter {
   facing: Facing;
 
   hp: number;
+  /** Full health for this match (RULES.maxHp x the world's hpScale). */
+  maxHp: number;
   guard: number;
   energy: number;
   /** F until guard starts regenerating. */
@@ -75,6 +77,8 @@ export interface World {
   winner: FighterId | -1 | null;
   /** Round wins, persists across rounds. */
   score: [number, number];
+  /** Health multiplier for this match (1 = the reference 1000 HP). */
+  hpScale: number;
 }
 
 export type HitSide = 'front' | 'back';

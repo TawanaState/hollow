@@ -9,6 +9,8 @@
 | `npm run build` | typecheck, then build to `dist/` |
 | `npm run typecheck` | three checks: client, core (no DOM/Node allowed), server |
 | `npm test` | vitest: sim rules, events/input API, server rooms |
+| `npm run train:base` | retrain the three starter personas into `public/personas/` (about 14 minutes; add `-- --quick` for a 1 minute smoke test) |
+| `npm run teachers` | win-rate table of the scripted teacher bots against each other |
 | `npm run logo` | regenerate the logo, favicon and maskable icon |
 | `npm run icons` | render the PNG app icons from them (uses any installed Edge/Chrome) |
 
@@ -26,8 +28,10 @@ Requires Node 22+. The project uses TypeScript's `erasableSyntaxOnly` (no `enum`
 | `?hp=0.9,0.15` | start with these health ratios (to look at the tired stance) |
 | `?server=wss://host` | use this game server for online play (remembered) |
 | `?log` | print the readable event log to the console |
+| `?students` | open the Students screen straight away |
+| `?watch=ember,stone` (`&ff=300`) | start two students fighting (and optionally skip ahead) |
 
-In the browser console: `hollow.world`, `hollow.session`, `hollow.bus`, `hollow.vfx`, `hollow.log(true)`, `hollow.onEvent(fn)`.
+In the browser console: `hollow.world`, `hollow.session`, `hollow.bus`, `hollow.vfx`, `hollow.log(true)`, `hollow.onEvent(fn)`, and `hollow.ai` (`store`, `learner`, `controller`) for the students: for example `await hollow.ai.store.usage()` or `await hollow.ai.store.cleanup()`.
 
 ## Debugging a move
 
@@ -40,15 +44,17 @@ In the browser console: `hollow.world`, `hollow.session`, `hollow.bus`, `hollow.
 
 * `tests/sim.test.ts`: hits, startup frames, hitstop, combos and cancels, blocking, parry, low vs standing guard, cross-ups, priority rules, invulnerability, K.O. and round reset, determinism and replay.
 * `tests/api.test.ts`: `EventBus`, `InputRouter`, sources, `Game`, `describeEvent`, loopback transport, protocol decoding.
+* `tests/ai.test.ts`: the network (numerical gradient check, save/load, learning a mapping), what the AI sees (fixed size, identical from either side, knows distance and direction), actions and legality, the ground rules, the Randomness dial's share, replay packing, **that what is learned from a recording is exactly what the AI saw when it played**, and that practice matches are deterministic.
+* `tests/personas.test.ts`: the shipped brains (right size, beat random play), persona storage (versions, undo, reset, export/import, schema fallback), the storage tidy-up, the learning pipeline within its time budget, and that a recorded round replays to exactly the live game's final state. Uses `fake-indexeddb`.
 * `tests/server.test.ts`: seating, spectators, the authoritative loop producing hits, version rejection, promotion when a player leaves. All in-process.
 
 ## What is built, and what is not
 
-Built: the deterministic sim, all content and effects, local 2-player, training dummy, WebSocket server with rooms, browser online client, phone controls, theming, sandbox, tests, docs.
+Built: the deterministic sim, all content and effects, local 2-player, training dummy, **learning AI students (play, watch AI vs AI, adapt to you, work offline, storage tidy-up)**, health setting, WebSocket server with rooms, browser online client, phone controls, installable offline PWA, theming, sandbox, tests, docs.
 
 **Not built yet** (by decision or because it needs your input):
 
-* **AI / bot player.** The seam is ready: implement `InputSource` (see [events-and-input-api.md](events-and-input-api.md)) and attach it to a slot. `describeEvent` already produces the text log an LLM would read. Planned design: a slow "brain" (LLM, a few decisions per second, outputs a short plan) over a fast "reflex" layer (code, every frame).
+* **AI against people online.** Students (see [ai.md](ai.md)) are single-player for now. They are plain `InputSource`s, so putting one in a server seat later is straightforward. A language-model "brain" is still just an idea; `describeEvent` already produces the text log it would read.
 * Client-side prediction / rollback netcode, WebRTC transport, delta snapshots.
 * More skills, characters, stages, a proper tutorial. The first-pass move set (jab, cross, spin kick, straight, sweep, air kick, Hollow Rush) exists to prove the engine.
 * The touch controls (floating stick plus buttons) are built and look right in landscape, but have not been play-tested on a real phone. Expect to tune stick thresholds and button sizes.

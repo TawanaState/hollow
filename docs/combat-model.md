@@ -6,7 +6,7 @@ Everything here is implemented in [`src/core/sim.ts`](../src/core/sim.ts); the n
 
 | Meter | Start | Meaning |
 |---|---|---|
-| **HP** | 1000 | Life. 0 = K.O. |
+| **HP** | 1000 × the Health setting (default Long = 2000) | Life. 0 = K.O. Damage numbers are tuned for 1000; the menu's Health setting (Normal 1× / Long 2× / Epic 3× / Marathon 5×) scales it, so fights can be longer without retuning moves. Online matches use the server's default. |
 | **Guard** | 100 | Block stamina. Each block drains it by the move's `guardDamage`. At 0 you are **guard broken**: stunned 70 F and wide open. Guard refills 0.4/F, starting 50 F after the last block, and not while blocking. |
 | **Energy** | 0 | Fuel for ultimates (`cost`). Attacker gains by tier (light 4, medium 7, heavy 12, crush 20), the victim gains 4% of damage taken, blocks give 2 each way, a parry gives 15. |
 

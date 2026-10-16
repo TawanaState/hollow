@@ -58,7 +58,13 @@ export const PHYSICS = {
 } as const;
 
 export const RULES = {
+  /** Reference health. Actual health is this times the match's health scale (see defaultHpScale). */
   maxHp: 1000,
+  /**
+   * Health multiplier for a normal match. Damage numbers are tuned on 1000, but fights feel better
+   * longer, so matches start with maxHp x this. The menu lets players pick 1x / 2x / 3x / 5x.
+   */
+  defaultHpScale: 2,
   maxGuard: 100,
   maxEnergy: 100,
 

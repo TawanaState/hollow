@@ -1,9 +1,12 @@
 import '../style.css';
 import logoSvg from '../assets/logo.svg?raw';
-import { RULES } from '../content/config.ts';
 import { assertValidContent } from '../content/validate.ts';
 import { EventBus, FRAME_MS, NullSource, describeEvent } from '../core/index.ts';
 import type { GameEvent, InputFrame, InputSource } from '../core/index.ts';
+import { AiController } from './ai/controller.ts';
+import { Learner } from './ai/learner.ts';
+import { PersonaStore } from './ai/personas.ts';
+import { StudentsUi } from './ai/ui.ts';
 import { Audio } from './audio.ts';
 import { cueFor } from './director.ts';
 import { Hud } from './hud.ts';
@@ -11,6 +14,7 @@ import { Keyboard, P1_KEYS, P2_KEYS } from './keyboard.ts';
 import { keepAwake, registerServiceWorker, setupFullscreen, setupInstall } from './pwa.ts';
 import { Renderer } from './renderer.ts';
 import { saveServer, savedServer, serverUrl } from './server.ts';
+import { saveHpScale, savedHpScale } from './settings.ts';
 import { LocalSession, OnlineSession } from './session.ts';
 import type { OnlineInfo, Session } from './session.ts';
 import { initTheme, toggleTheme } from './theme.ts';
@@ -69,7 +73,7 @@ const merge = (...sources: InputSource[]): InputSource => ({
 
 // ── sessions ──
 let session: Session = new LocalSession(bus, new NullSource(), new NullSource()); // living menu backdrop
-let mode: 'menu' | 'local' | 'training' | 'online' = 'menu';
+let mode: 'menu' | 'local' | 'training' | 'online' | 'persona' | 'watch' = 'menu';
 let roomName = 'lobby';
 
 function begin(next: Session, label: typeof mode): void {
@@ -81,8 +85,12 @@ function begin(next: Session, label: typeof mode): void {
   vfx.clear();
   hud.setStatus('');
   hud.setNames('RED', 'INK');
-  const onScreenControls = label !== 'menu' && wantsTouch();
+  // a student match or a watched fight is owned by the AI controller; anything else ends it
+  if (label !== 'persona' && label !== 'watch') ai.end();
+  const onScreenControls = label !== 'menu' && label !== 'watch' && wantsTouch();
   touch.show(onScreenControls);
+  watchbar.hidden = label !== 'watch';
+  if (label === 'watch') setSpeedButton(1);
   renderer.camera.anchorShift = onScreenControls ? 95 : 0;
   if (label !== 'menu' && !awake) {
     awake = true;
@@ -93,12 +101,19 @@ function begin(next: Session, label: typeof mode): void {
 
 function openMenu(): void {
   begin(new LocalSession(bus, new NullSource(), new NullSource()), 'menu');
+  showPanel('main');
+}
+
+/** The menu has two screens: the main one and the Students one. */
+function showPanel(which: 'main' | 'students'): void {
+  $('#menu > .panel:not(#ai-panel)').hidden = which !== 'main';
+  $('#ai-panel').hidden = which !== 'students';
 }
 
 function startLocal(training: boolean): void {
   const p1 = merge(keyboard.source(P1_KEYS), touch);
   const p2 = training ? new NullSource() : keyboard.source(P2_KEYS);
-  begin(new LocalSession(bus, p1, p2), training ? 'training' : 'local');
+  begin(new LocalSession(bus, p1, p2, savedHpScale()), training ? 'training' : 'local');
 }
 
 function startOnline(room: string): void {
@@ -125,7 +140,82 @@ function showOnline(info: OnlineInfo): void {
   hud.setStatus([info.message, `room “${roomName}”`, where, info.ping ? `${info.ping}ms` : ''].filter(Boolean).join('  ·  '));
 }
 
+// ── students (AI personas that learn from you) ──
+const watchbar = $('#watchbar');
+const store = new PersonaStore();
+const learner = new Learner(store);
+const ai = new AiController(
+  {
+    bus,
+    hud,
+    humanInput: () => merge(keyboard.source(P1_KEYS, P2_KEYS), touch),
+    hpScale: savedHpScale,
+    begin: (next, label) => begin(next, label),
+  },
+  store,
+  learner,
+);
+const students = new StudentsUi(store, learner, ai);
+store
+  .ensureDefaults()
+  .then(async () => {
+    void store.cleanup().catch(() => undefined); // housekeeping at startup
+    await students.render();
+    // dev shortcuts: ?students opens the screen, ?watch=ember,stone starts a fight between two students
+    const q = new URLSearchParams(location.search);
+    if (q.has('students')) {
+      showPanel('students');
+      await students.open(false);
+    }
+    const watch = q.get('watch');
+    if (watch) {
+      const names = watch.toLowerCase().split(',');
+      const all = await store.list();
+      const find = (n: string | undefined, fallback: number) => all.find((p) => p.name.toLowerCase() === n) ?? all[fallback];
+      const a = find(names[0], 0);
+      const b = find(names[1], 1);
+      if (a && b) await ai.watch(a.id, b.id);
+      // &ff=N fast-forwards N frames first (to look at a moment mid-fight)
+      for (let i = 0; i < Number(q.get('ff') ?? 0) && session instanceof LocalSession; i++) {
+        session.game.tick();
+        vfx.update(1, 1);
+      }
+    }
+  })
+  .catch((e) => {
+    console.warn('[hollow] students unavailable', e);
+    for (const id of ['#go-ai', '#go-watch']) {
+      const b = $<HTMLButtonElement>(id);
+      b.disabled = true;
+      b.title = 'Students need local storage and the starter brains, which are not available here.';
+    }
+  });
+
+function setSpeedButton(speed: number): void {
+  for (const b of watchbar.querySelectorAll<HTMLButtonElement>('button')) b.classList.toggle('on', Number(b.dataset.speed) === speed);
+}
+watchbar.addEventListener('click', (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-speed]');
+  if (!b) return;
+  ai.setSpeed(Number(b.dataset.speed));
+  setSpeedButton(Number(b.dataset.speed));
+});
+
 // ── UI ──
+const hpSelect = $<HTMLSelectElement>('#hp-scale');
+hpSelect.value = String(savedHpScale());
+hpSelect.addEventListener('change', () => saveHpScale(Number(hpSelect.value)));
+$('#go-ai').addEventListener('click', () => {
+  audio.unlock();
+  showPanel('students');
+  void students.open(false);
+});
+$('#go-watch').addEventListener('click', () => {
+  audio.unlock();
+  showPanel('students');
+  void students.open(true);
+});
+$('#ai-back').addEventListener('click', () => showPanel('main'));
 $('#go-local').addEventListener('click', () => (audio.unlock(), startLocal(false)));
 $('#go-training').addEventListener('click', () => (audio.unlock(), startLocal(true)));
 $('#go-online').addEventListener('click', () => {
@@ -216,7 +306,7 @@ const hpParam = params.get('hp');
 if (hpParam && session instanceof LocalSession) {
   hpParam.split(',').forEach((v, i) => {
     const f = session.world.fighters[i];
-    if (f) f.hp = Math.max(1, Math.round(Number(v) * RULES.maxHp));
+    if (f) f.hp = Math.max(1, Math.round(Number(v) * f.maxHp));
   });
 }
 
@@ -251,6 +341,7 @@ Object.assign(window, {
     bus,
     vfx,
     renderer,
+    ai: { store, learner, controller: ai },
     log: (on = true) => (logging = on),
     onEvent: (fn: (e: GameEvent) => void) => bus.onAny(fn),
   },

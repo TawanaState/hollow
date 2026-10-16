@@ -742,3 +742,220 @@ details.server input {
 @media (pointer: coarse) {
   .keys, .keys-hint { display: none; }
 }
+
+/* ───────────────────────────── STUDENTS (AI PERSONAS) ───────────────────────────── */
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.field select,
+.panel select,
+#ai-panel input[type='text'],
+#ai-panel input:not([type]) {
+  background: transparent;
+  color: var(--text);
+  border: 2px solid var(--panel-line);
+  padding: 7px 8px;
+  font: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+  min-width: 0;
+}
+.panel select option {
+  color: #111;
+}
+.panel.ai {
+  width: min(94vw, 780px);
+  display: block;
+  text-align: left;
+}
+.ai-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.ai-head h2 {
+  margin: 0;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 22px;
+}
+.ai-head button,
+#ai-panel button {
+  border: 2px solid var(--ink);
+  background: transparent;
+  color: var(--text);
+  padding: 6px 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+#ai-panel button.primary,
+#ai-panel button:hover {
+  background: var(--ink);
+  color: var(--sky-top);
+}
+#ai-status {
+  margin-left: auto;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-align: right;
+}
+#ai-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px;
+}
+.card {
+  border: 2px solid var(--panel-line);
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+.card .top {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.card .pname {
+  font: 800 16px 'Segoe UI', system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  width: 100%;
+  border: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  padding: 2px 0 !important;
+}
+.card .pname:focus {
+  outline: none;
+  border-bottom-color: var(--ink) !important;
+}
+.card .rec {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.card .blurb {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-dim);
+  min-height: 2.6em;
+}
+.card .dial {
+  display: grid;
+  grid-template-columns: 78px 1fr 48px;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.card .dial output {
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.card input[type='range'] {
+  width: 100%;
+  accent-color: var(--ink);
+}
+.card .actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.card details {
+  font-size: 11px;
+}
+.card details summary {
+  cursor: pointer;
+  color: var(--text-dim);
+  padding: 4px 6px;
+}
+.card details .more {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+}
+.card .meter {
+  height: 4px;
+  background: var(--hp-track);
+}
+.card .meter i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+.ai-block {
+  margin-top: 10px;
+  border-top: 1px solid var(--panel-line);
+  padding-top: 8px;
+}
+.ai-block summary {
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.watch-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+.watch-row select,
+.watch-row input {
+  flex: 1;
+  min-width: 100px;
+}
+.field.file {
+  padding-top: 6px;
+}
+#ai-panel .field {
+  margin-top: 10px;
+}
+
+/* watch mode: speed buttons */
+#watchbar {
+  position: absolute;
+  left: 50%;
+  bottom: max(44px, calc(env(safe-area-inset-bottom) + 30px));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 6;
+}
+#watchbar button {
+  min-width: 44px;
+  padding: 8px 10px;
+  border: 2px solid var(--ink);
+  background: color-mix(in srgb, var(--sky-top) 70%, transparent);
+  color: var(--text);
+  font-weight: 800;
+}
+#watchbar button.on {
+  background: var(--ink);
+  color: var(--sky-top);
+}
+@media (max-height: 520px) {
+  .panel.ai { display: block; padding: 10px 16px; }
+  .card .blurb { display: none; }
+}

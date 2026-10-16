@@ -91,6 +91,16 @@
             <div class="buttons">
               <button class="primary" id="go-local">Local 2 players</button>
               <button id="go-training">Training dummy</button>
+              <button id="go-ai">Play a student</button>
+              <button id="go-watch">Watch AI vs AI</button>
+              <label class="field">Health
+                <select id="hp-scale" aria-label="health">
+                  <option value="1">Normal</option>
+                  <option value="2" selected>Long</option>
+                  <option value="3">Epic</option>
+                  <option value="5">Marathon</option>
+                </select>
+              </label>
               <div class="online">
                 <input id="room" value="lobby" maxlength="24" spellcheck="false" autocapitalize="off" aria-label="room code" />
                 <button id="go-online">Play online</button>
@@ -112,6 +122,59 @@
             <p class="hint keys-hint">T theme · M sound · F fullscreen · Esc menu · R restart · ` hitboxes</p>
           </div>
         </div>
+        <!-- students: AI personas that learn from you -->
+        <div id="ai-panel" class="panel ai" hidden>
+          <div class="ai-head">
+            <button id="ai-back" aria-label="back">←</button>
+            <h2>Students</h2>
+            <span id="ai-status"></span>
+          </div>
+          <div id="ai-list"></div>
+          <details id="ai-watch" class="ai-block">
+            <summary>Watch two students fight</summary>
+            <div class="watch-row">
+              <select id="watch-a" aria-label="first fighter"></select>
+              <span>vs</span>
+              <select id="watch-b" aria-label="second fighter"></select>
+              <button id="watch-go" class="primary">Watch</button>
+            </div>
+          </details>
+          <details class="ai-block">
+            <summary>New student · import</summary>
+            <div class="watch-row">
+              <select id="new-base" aria-label="start from"></select>
+              <input id="new-name" placeholder="name" maxlength="24" spellcheck="false" aria-label="name" />
+              <button id="new-go">Create</button>
+            </div>
+            <label class="field file">Import a student file <input id="import-file" type="file" accept=".json,application/json" /></label>
+          </details>
+          <details id="ai-storage" class="ai-block">
+          <summary>Storage</summary>
+          <p id="storage-info" class="hint">Checking…</p>
+          <div class="watch-row">
+            <button id="storage-tidy" class="primary">Tidy up</button>
+            <button id="storage-forget">Forget my matches</button>
+            <button id="storage-wipe">Erase all</button>
+          </div>
+          <p class="hint">Students keep only what they still need and tidy up on their own. <b>Tidy up</b> removes old brain versions and old match recordings now. <b>Forget my matches</b> deletes the recordings (students keep their brains). <b>Erase all</b> deletes every student and starts over.</p>
+        </details>
+        <label class="field">Learning effort
+            <select id="effort" aria-label="learning effort">
+              <option value="off">Off</option>
+              <option value="quick">Quick (8 s)</option>
+              <option value="normal" selected>Normal (20 s)</option>
+              <option value="deep">Deep (1 min)</option>
+            </select>
+          </label>
+          <p class="hint">Students study your matches after every round, on this device, with no internet.</p>
+        </div>
+      </div>
+
+      <div id="watchbar" hidden>
+        <button data-speed="1" class="on">1×</button>
+        <button data-speed="2">2×</button>
+        <button data-speed="4">4×</button>
+        <button data-speed="8">8×</button>
       </div>
 
       <div id="rotate">

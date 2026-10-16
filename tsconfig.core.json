@@ -17,5 +17,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/core", "src/content", "src/net"]
+  "include": ["src/core", "src/content", "src/net", "src/ai"]
 }

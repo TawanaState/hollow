@@ -73,7 +73,7 @@ describe('room', () => {
     const snaps = b.of('snapshot');
     const events = snaps.flatMap((s) => s.events);
     expect(events.some((e) => e.t === 'HIT' && e.atk === 0)).toBe(true);
-    expect(snaps.at(-1)!.world.fighters[1].hp).toBeLessThan(RULES.maxHp);
+    expect(snaps.at(-1)!.world.fighters[1].hp).toBeLessThan(snaps.at(-1)!.world.fighters[1].maxHp);
     mgr.closeAll();
   });
 

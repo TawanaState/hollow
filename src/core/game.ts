@@ -13,7 +13,7 @@ import type { GameEvent, World } from './types.ts';
  *   game.tick()                          advance 1 F: poll inputs, step, publish events
  */
 export class Game {
-  world: World = createWorld();
+  world: World;
   readonly bus: EventBus;
   readonly router = new InputRouter();
   readonly recorder = new Recorder();
@@ -21,8 +21,9 @@ export class Game {
   recording = true;
 
   /** Pass a shared bus to publish into (so systems subscribe once, whatever the session). */
-  constructor(bus: EventBus = new EventBus()) {
+  constructor(bus: EventBus = new EventBus(), hpScale?: number) {
     this.bus = bus;
+    this.world = createWorld({ hpScale });
   }
 
   /** Advance exactly one frame. Returns the events (already published on the bus). */
@@ -36,7 +37,7 @@ export class Game {
 
   /** Start over: new world, new recording. Listeners and input sources stay attached. */
   restart(): void {
-    this.world = createWorld();
+    this.world = createWorld({ hpScale: this.world.hpScale });
     this.recorder.clear();
   }
 

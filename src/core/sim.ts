@@ -24,7 +24,7 @@ type Source = 'command' | 'reaction' | 'natural' | 'forced';
 
 // ───────────────────────────── construction ─────────────────────────────
 
-export function createFighter(id: FighterId): Fighter {
+export function createFighter(id: FighterId, maxHp: number = RULES.maxHp * RULES.defaultHpScale): Fighter {
   const side = id === 0 ? -1 : 1;
   return {
     id,
@@ -33,7 +33,8 @@ export function createFighter(id: FighterId): Fighter {
     vx: 0,
     vy: 0,
     facing: (id === 0 ? 1 : -1) as Facing,
-    hp: RULES.maxHp,
+    hp: maxHp,
+    maxHp,
     guard: RULES.maxGuard,
     energy: 0,
     guardDelay: 0,
@@ -57,21 +58,25 @@ export function createFighter(id: FighterId): Fighter {
   };
 }
 
-export function createWorld(): World {
+export function createWorld(opts: { hpScale?: number } = {}): World {
+  const hpScale = opts.hpScale ?? RULES.defaultHpScale;
+  const maxHp = Math.round(RULES.maxHp * hpScale);
   return {
     frame: 0,
-    fighters: [createFighter(0), createFighter(1)],
+    fighters: [createFighter(0, maxHp), createFighter(1, maxHp)],
     hitstop: 0,
     phase: 'intro',
     phaseF: 0,
     winner: null,
     score: [0, 0],
+    hpScale,
   };
 }
 
 /** Start a fresh round. Score persists. */
 export function resetRound(w: World): void {
-  w.fighters = [createFighter(0), createFighter(1)];
+  const maxHp = Math.round(RULES.maxHp * w.hpScale);
+  w.fighters = [createFighter(0, maxHp), createFighter(1, maxHp)];
   w.hitstop = 0;
   w.phase = 'intro';
   w.phaseF = 0;

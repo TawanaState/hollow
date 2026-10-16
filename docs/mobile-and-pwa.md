@@ -36,8 +36,25 @@ The app is `display: fullscreen`, `orientation: landscape`, with a light backgro
 * The service worker only registers in production builds (`npm run build`), not in `npm run dev`.
 * The Play online button turns into **Offline** while the phone has no network.
 * No dependencies were added for this.
+* **Students work offline too:** the starter brains and the training worker are part of the cache, and everything a student learns is stored on the device.
 
 To regenerate icons after changing the logo: `npm run logo && npm run icons` (the second step uses any installed Edge/Chrome to render the PNGs).
+
+## Storage and cleanup
+
+The app keeps two kinds of data on the device, and tidies both so it does not pile up:
+
+| What | Where | How it stays small |
+|---|---|---|
+| **The app itself** (code, icons, starter brains) | the service worker's cache | one cache per build. When a new version installs, the old cache is **deleted automatically**, so there is only ever one copy |
+| **Students** (brains, recorded matches, models of you) | IndexedDB | old brain versions and surplus or old recordings are pruned as they are saved, plus a full tidy-up at startup and after every lesson. See [ai.md](ai.md#storage-and-cleanup) for the exact rules |
+| Small preferences (theme, health, server, effort) | localStorage | a few bytes |
+
+You can see it and act on it in **Students → Storage**: how much student data there is (and what the browser reports for the whole app), **Tidy up** (clean now and report what was freed), **Forget my matches**, and **Erase all**. Student data is small: roughly 0.5 to 1 MB per fully grown student.
+
+The app asks the browser to keep its data (`navigator.storage.persist()`). Browsers may otherwise clear a site's storage when a device is very low on space; installing the app to the home screen makes that much less likely. The Storage section says if the browser has not promised persistence.
+
+If you want to remove the offline app files themselves, use the browser's own "clear site data" (or uninstall the app); the next visit simply downloads them again.
 
 ## Hosting
 

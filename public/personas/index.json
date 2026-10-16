@@ -1,0 +1,59 @@
+{
+  "schema": "424a38cc",
+  "sizes": [
+    126,
+    96,
+    64,
+    14
+  ],
+  "obsDim": 126,
+  "outputs": 14,
+  "trainedWith": "full",
+  "personas": [
+    {
+      "id": "ember",
+      "name": "Ember",
+      "blurb": "Rushes you down. Dashes in, jabs, and never lets up.",
+      "style": "ember",
+      "file": "ember.bin",
+      "winRates": {
+        "teacher:ember": 84,
+        "teacher:stone": 34,
+        "teacher:echo": 53,
+        "random": 90,
+        "persona:stone": 40,
+        "persona:echo": 28
+      }
+    },
+    {
+      "id": "stone",
+      "name": "Stone",
+      "blurb": "Patient counter-fighter. Blocks, parries, then punishes.",
+      "style": "stone",
+      "file": "stone.bin",
+      "winRates": {
+        "teacher:ember": 88,
+        "teacher:stone": 48,
+        "teacher:echo": 80,
+        "random": 90,
+        "persona:ember": 75,
+        "persona:echo": 63
+      }
+    },
+    {
+      "id": "echo",
+      "name": "Echo",
+      "blurb": "Adapts to you. Reads your habits and changes its game.",
+      "style": "echo",
+      "file": "echo.bin",
+      "winRates": {
+        "teacher:ember": 85,
+        "teacher:stone": 38,
+        "teacher:echo": 65,
+        "random": 100,
+        "persona:ember": 75,
+        "persona:stone": 35
+      }
+    }
+  ]
+}

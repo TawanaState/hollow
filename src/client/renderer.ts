@@ -1,4 +1,4 @@
-import { RULES, STAGE } from '../content/config.ts';
+import { STAGE } from '../content/config.ts';
 import { SKILLS } from '../content/skills.ts';
 import { hitRects, hurtRect } from '../core/sim.ts';
 import type { Fighter, Rect, World } from '../core/types.ts';
@@ -184,7 +184,7 @@ export class Renderer {
     // animation -> random hand habit (never the striking hand) -> fatigue -> crossfade
     let pose = samplePose(choice.anim, choice.t);
     pose = v.habits.apply(f, pose, dtF);
-    const tired = fatigueOf(f.hp / RULES.maxHp, f.guard);
+    const tired = fatigueOf(f.hp / f.maxHp, f.guard);
     v.fatigue += (tired - v.fatigue) * (1 - Math.pow(0.97, dtF));
     pose = applyFatigue(choice.id, pose, choice.t, v.fatigue);
     pose = v.blender.pose(choice.id, pose, choice.anim.blend ?? 3, dtF);

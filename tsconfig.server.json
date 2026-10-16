@@ -16,5 +16,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["server", "vite.config.ts", "src/core", "src/content", "src/net"]
+  "include": ["server", "scripts/**/*.mts", "vite.config.ts", "src/core", "src/content", "src/net", "src/ai"]
 }
