@@ -8,10 +8,13 @@ Three students come with the game: **Ember** (rushes you down), **Stone** (block
 
 Menu → **Play a student**, or **Watch AI vs AI**.
 
+The Students screen shows **one student at a time**: use the ◀ ▶ buttons (or swipe the card, or the arrow keys, or tap a dot) to flip through them, change the difficulty with one tap, then press **Play**.
+
 | On a student card | What it does |
 |---|---|
-| **Randomness** (0–100%) | The share of its decisions that are thrown away and replaced by a random but sensible, legal action. 0% is full strength; 50% means half its choices are random; 100% is pure flailing. |
-| **Reaction** (0–400 ms) | How late it sees things. A slow reaction means you can beat it to the punch. |
+| **Difficulty** (Easy, Normal, Hard, Brutal) | Four presets that set both dials below in one tap. The label shows *Custom* if you move a dial away from them. |
+| **Randomness** (0–100%) | The share of its decisions replaced by a random but sensible action. A little makes it less predictable and a bit sloppy. |
+| **Reaction** (0–400 ms) | How long after it decides before its hands act, like a person's reaction time. This is the main handicap. |
 | **Play** | Fight it. Every round is recorded and studied afterwards. |
 | **More** | *Undo last lesson* (go back one brain version), *Reset* (back to its starting brain), *Export* (a `.hollow.json` file), *Delete*. |
 
@@ -23,10 +26,10 @@ Matches also have a **Health** setting in the main menu (Normal 1000 / Long 2000
 
 Every **4 frames** (15 times a second, `AI.decisionFrames`) it makes one decision:
 
-1. **Look.** It sees the fight as a list of about 100 numbers ([`ai/features.ts`](../src/ai/features.ts)), a little late (the Reaction setting).
+1. **Look.** It sees the fight, as it is right now, as a list of about 125 numbers ([`ai/features.ts`](../src/ai/features.ts)).
 2. **Work out what is possible.** A legality mask removes anything the game would ignore (attacking while knocked down, the ultimate without energy). Then the ground rules remove actions it has repeated too often.
 3. **Choose.** Its network picks a *move* (7 choices) and a *button* (6 choices). Unless the Randomness dial replaces the choice with a random one.
-4. **Play it out** as real button presses over the next 4 frames, through the same input router as a keyboard. The game cannot tell it from a person.
+4. **Play it out** as real button presses over the next 4 frames, through the same input router as a keyboard, **`reaction` frames later** (its reaction time). The game cannot tell it from a person.
 
 ### What it can see
 
@@ -63,6 +66,26 @@ Actions the student may not repeat too many times in a row, however much it like
 
 Rules only ever *remove* options. If one would leave nothing to do, it stands down for that decision. The same applies to the Randomness dial: random choices are legal ones, weighted toward everyday actions, and come in short runs (about 2 decisions), so random play looks like flailing, not jitter. The long-run share of random decisions matches the slider (this is tested).
 
+## Difficulty
+
+The two dials do different jobs, and it matters which one you turn:
+
+* **Reaction** is the big one. The brains win by reflex: they block a 4-frame jab *as it starts*. Every frame of delay costs them dearly, so reaction time is a smooth, wide-range handicap.
+* **Randomness** is a light seasoning. On its own it weakens a student gently, but it quickly makes play look like flailing, so the presets use it sparingly.
+
+The presets were calibrated by playing the students against a *human stand-in* (a bot with a 200 ms reaction that makes 20% sloppy choices; people are usually weaker than a bot, so this is a fairly tough test):
+
+| Preset | Randomness | Reaction | Student wins vs the stand-in |
+|---|---|---|---|
+| **Easy** | 35% | 17 frames (283 ms) | about 18% |
+| **Normal** | 20% | 12 frames (200 ms) | about 64% |
+| **Hard** (default) | 10% | 8 frames (133 ms) | about 91% |
+| **Brutal** | 0% | 0 frames | 100% |
+
+(`DIFFICULTY` in [`content/ai.ts`](../src/content/ai.ts).) Without any handicap, the students beat the stand-in 100% of the time, which matches how tough they feel to play.
+
+*A finding worth knowing:* an earlier version fed the student a stale picture of the game to model "reaction". These brains, trained on a current picture, fell apart (3 frames of staleness took a student from 60% to 13% wins against a bot). Delaying the *hands* instead, while the brain still sees the present, behaves smoothly and is what is used now. Both versions were measured before choosing.
+
 ## How a student learns
 
 After every round, in a background worker (so the game stays smooth), within the Learning-effort time budget:
@@ -91,15 +114,17 @@ Built by `npm run train:base` ([`scripts/train-base.mts`](../scripts/train-base.
 2. **Distil** each teacher into a network with DAgger: the *network* plays and the *teacher* labels every situation it reaches, so the network learns to recover from its own mistakes instead of only copying a perfect player.
 3. **League practice**: 10 generations of the three students practising against the teachers and each other with the same learn-and-gate loop as above.
 
-The full run (about 14 minutes on a desktop) produced these win rates at full strength (40 matches each, sides swapped, no randomness or reaction delay):
+The full run (about 21 minutes on a desktop) produced these win rates **under the current rules, including the fair get-up rule** (40 matches each, sides swapped, full strength):
 
 | | vs Ember bot | vs Stone bot | vs Echo bot | vs random | vs Ember | vs Stone | vs Echo |
 |---|---|---|---|---|---|---|---|
-| **Ember** | 84% | 34% | 53% | 90% | – | 40% | 28% |
-| **Stone** | 88% | 48% | 80% | 90% | 75% | – | 63% |
-| **Echo** | 85% | 38% | 65% | 100% | 75% | 35% | – |
+| **Ember** | 63% | 34% | 50% | 88% | – | 25% | 48% |
+| **Stone** | 88% | 65% | 68% | 85% | 84% | – | 66% |
+| **Echo** | 85% | 40% | 63% | 80% | 60% | 39% | – |
 
-Stone is the strongest, Ember and Echo trade blows, and they are distinct. Default settings in the game add a 10% randomness and an 8-frame reaction delay, so they play a little softer than this. The numbers are also in `public/personas/index.json`.
+Stone is the strongest, Ember and Echo trade blows, and they are distinct. Default settings in the game are the **Hard** preset, so they play softer than this. The numbers are also in `public/personas/index.json`.
+
+**The fair get-up rule** (a fighter is held back while the other is down; see [combat-model.md](combat-model.md#3b-fair-get-up)) changed the game after the first training. The students were re-measured and still played well, so they did not *need* retraining; a fresh run under the new rule came out about equal (the average over every matchup was within 1%), and those are the brains shipped now. Students you already have keep their own brains. Recordings made before the rule are discarded by the tidy-up, because they would replay differently now.
 
 To change a persona's style, edit its teacher or its reward style (`STYLES`) and re-run the script. Same seeds give the same brains.
 

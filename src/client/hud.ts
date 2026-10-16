@@ -98,6 +98,7 @@ export class Hud {
       s.energy.style.transform = `scaleX(${f.energy / RULES.maxEnergy})`;
       s.energy.parentElement!.classList.toggle('full', f.energy >= RULES.maxEnergy);
       s.score.textContent = '●'.repeat(w.score[f.id]);
+      s.root.classList.toggle('held', f.held);
       if (s.comboFade > 0) {
         s.comboFade -= dtF;
         if (s.comboFade <= 0) s.combo.classList.remove('show');

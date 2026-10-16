@@ -1,5 +1,6 @@
 import '../style.css';
 import logoSvg from '../assets/logo.svg?raw';
+import { SFX } from '../content/sfx.ts';
 import { assertValidContent } from '../content/validate.ts';
 import { EventBus, FRAME_MS, NullSource, describeEvent } from '../core/index.ts';
 import type { GameEvent, InputFrame, InputSource } from '../core/index.ts';
@@ -8,13 +9,16 @@ import { Learner } from './ai/learner.ts';
 import { PersonaStore } from './ai/personas.ts';
 import { StudentsUi } from './ai/ui.ts';
 import { Audio } from './audio.ts';
+import { Foley } from './foley.ts';
+import { setupUiSounds } from './uiSounds.ts';
 import { cueFor } from './director.ts';
 import { Hud } from './hud.ts';
 import { Keyboard, P1_KEYS, P2_KEYS } from './keyboard.ts';
 import { keepAwake, registerServiceWorker, setupFullscreen, setupInstall } from './pwa.ts';
 import { Renderer } from './renderer.ts';
 import { saveServer, savedServer, serverUrl } from './server.ts';
-import { saveHpScale, savedHpScale } from './settings.ts';
+import { saveHpScale, saveSoundMode, saveVolume, savedHpScale, savedSoundMode, savedVolume } from './settings.ts';
+import type { SoundMode } from './settings.ts';
 import { LocalSession, OnlineSession } from './session.ts';
 import type { OnlineInfo, Session } from './session.ts';
 import { initTheme, toggleTheme } from './theme.ts';
@@ -41,17 +45,31 @@ const vfx = new Vfx({
   vignette: $('.fx-vignette'),
 });
 const audio = new Audio();
+audio.listener = () => renderer.camera.x; // sounds are placed left/right of where the camera looks
+const foley = new Foley();
 const hud = new Hud(app);
 const keyboard = new Keyboard();
 const touch = new TouchPad($('#touch'));
 /** Phones and tablets get on-screen controls. ?touch forces them on (handy for testing). */
 const wantsTouch = (): boolean => matchMedia('(pointer: coarse)').matches || new URLSearchParams(location.search).has('touch');
 let awake = false;
+const pauseOverlay = $('#pause');
+const pauseButton = $('#btn-pause');
 
 /** Everything that reacts to the game subscribes here, whatever the session is. */
 const bus = new EventBus();
+/** Which seat a person plays in a single-player match (so the announcer can say "You win"). */
+const humanSlot = (): 0 | 1 | null => {
+  if (mode === 'persona' || mode === 'training') return 0;
+  if (session.kind === 'online') {
+    const slot = (session as OnlineSession).slot;
+    return slot === 0 || slot === 1 ? slot : null;
+  }
+  return null;
+};
+
 bus.onAny((e) => {
-  const cue = cueFor(e);
+  const cue = cueFor(e, { world: session.world, humanSlot: humanSlot() });
   if (cue) {
     vfx.fire(cue.keys, cue.ctx);
     audio.playCue(cue);
@@ -90,6 +108,8 @@ function begin(next: Session, label: typeof mode): void {
   const onScreenControls = label !== 'menu' && label !== 'watch' && wantsTouch();
   touch.show(onScreenControls);
   watchbar.hidden = label !== 'watch';
+  pauseOverlay.hidden = true;
+  pauseButton.hidden = label === 'menu' || label === 'online';
   if (label === 'watch') setSpeedButton(1);
   renderer.camera.anchorShift = onScreenControls ? 95 : 0;
   if (label !== 'menu' && !awake) {
@@ -97,6 +117,16 @@ function begin(next: Session, label: typeof mode): void {
     keepAwake();
   }
   $('#menu').classList.toggle('closed', label !== 'menu');
+}
+
+/** Freeze the match (local ones only) and show the pause screen. */
+function setPaused(on: boolean): void {
+  if (mode === 'menu' || session.kind === 'online') return;
+  session.paused = on;
+  pauseOverlay.hidden = !on;
+  touch.reset();
+  audio.setSuspended(on);
+  if (on) $<HTMLButtonElement>('#pause-resume').focus();
 }
 
 function openMenu(): void {
@@ -226,6 +256,23 @@ $('#go-online').addEventListener('click', () => {
 $('#btn-theme').addEventListener('click', () => toggleTheme());
 $('#btn-sound').addEventListener('click', () => toggleSound());
 $('#btn-menu').addEventListener('click', () => openMenu());
+pauseButton.addEventListener('click', () => setPaused(true));
+$('#pause-resume').addEventListener('click', () => setPaused(false));
+$('#pause-menu').addEventListener('click', () => {
+  setPaused(false);
+  openMenu();
+});
+$('#pause-restart').addEventListener('click', () => {
+  if (session instanceof LocalSession) {
+    session.game.restart();
+    vfx.clear();
+  }
+  setPaused(false);
+});
+// leaving the app (switching tabs or apps on a phone) pauses a match, so nobody gets hit while away
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && mode !== 'menu' && mode !== 'online') setPaused(true);
+});
 
 // ── installable app + offline ──
 registerServiceWorker();
@@ -244,17 +291,39 @@ window.addEventListener('online', syncOnline);
 window.addEventListener('offline', syncOnline);
 syncOnline();
 
-function toggleSound(): void {
-  audio.muted = !audio.muted;
-  $('#btn-sound').style.opacity = audio.muted ? '0.4' : '1';
+const soundSelect = $<HTMLSelectElement>('#sound-mode');
+const volumeSlider = $<HTMLInputElement>('#volume');
+
+/** Apply Full / No announcer / Off, and show it on the toolbar button. */
+function applySound(mode: SoundMode): void {
+  audio.setMuted(mode === 'off');
+  audio.settings.voice = mode === 'full';
+  soundSelect.value = mode;
+  $('#btn-sound').style.opacity = mode === 'off' ? '0.4' : '1';
+  saveSoundMode(mode);
 }
+applySound(savedSoundMode());
+audio.setVolume(savedVolume() / 100);
+volumeSlider.value = String(savedVolume());
+soundSelect.addEventListener('change', () => applySound(soundSelect.value as SoundMode));
+volumeSlider.addEventListener('input', () => {
+  audio.setVolume(Number(volumeSlider.value) / 100);
+  saveVolume(Number(volumeSlider.value));
+});
+function toggleSound(): void {
+  applySound(audio.muted ? 'full' : 'off');
+}
+audio.prepare(); // build the mixer now and start loading the sounds, so they are ready at the first tap
+setupUiSounds(audio);
 
 window.addEventListener('keydown', (e) => {
   audio.unlock();
   if (e.repeat) return;
   switch (e.code) {
     case 'Escape':
-      openMenu();
+    case 'KeyP':
+      if (mode === 'online') openMenu();
+      else if (mode !== 'menu') setPaused(!session.paused);
       break;
     case 'KeyT':
       if ((e.target as HTMLElement).tagName !== 'INPUT') toggleTheme();
@@ -313,7 +382,7 @@ if (hpParam && session instanceof LocalSession) {
 // ── main loop ──
 let last = performance.now();
 function frame(now: number): void {
-  const dt = Math.min(now - last, 100);
+  const dt = session.paused ? 0 : Math.min(now - last, 100);
   last = now;
   const alpha = session.update(dt, vfx.timeScale);
   const dtF = dt / FRAME_MS;
@@ -321,6 +390,7 @@ function frame(now: number): void {
   vfx.update(dtF, scaled);
   renderer.render(session.world, alpha, scaled, vfx);
   hud.update(session.world, scaled);
+  foley.update(session.world, scaled, audio);
   requestAnimationFrame(frame);
 }
 renderer.snapCamera(session.world);
@@ -341,6 +411,9 @@ Object.assign(window, {
     bus,
     vfx,
     renderer,
+    audio,
+    AudioEngine: Audio,
+    sfxKeys: SFX,
     ai: { store, learner, controller: ai },
     log: (on = true) => (logging = on),
     onEvent: (fn: (e: GameEvent) => void) => bus.onAny(fn),

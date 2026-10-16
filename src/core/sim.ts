@@ -22,6 +22,13 @@ import type { Facing, Fighter, FighterId, GameEvent, HitSide, Rect, World } from
 
 type Source = 'command' | 'reaction' | 'natural' | 'forced';
 
+/**
+ * Bumps whenever a change to the rules would make an old recording play out differently.
+ * Stored recordings carry it, and the ones from an older version are thrown away rather than
+ * replayed wrongly. (2 = the fair get-up rule.)
+ */
+export const SIM_VERSION = 2;
+
 // ───────────────────────────── construction ─────────────────────────────
 
 export function createFighter(id: FighterId, maxHp: number = RULES.maxHp * RULES.defaultHpScale): Fighter {
@@ -50,6 +57,7 @@ export function createFighter(id: FighterId, maxHp: number = RULES.maxHp * RULES
     dashEnding: false,
     guardFresh: false,
     koBounced: false,
+    held: false,
     combo: 0,
     comboDamage: 0,
     input: 0,
@@ -196,7 +204,8 @@ export function step(w: World, inputs: readonly [InputFrame, InputFrame]): GameE
   const ev: GameEvent[] = [];
   w.frame++;
   const live = w.phase === 'fight';
-  for (const f of w.fighters) readInput(f, live ? inputs[f.id] : 0);
+  const eff = live ? applyFairGetup(w, inputs) : ([0, 0] as [InputFrame, InputFrame]);
+  for (const f of w.fighters) readInput(f, eff[f.id]);
 
   if (w.hitstop > 0) {
     w.hitstop--;
@@ -234,6 +243,29 @@ export function step(w: World, inputs: readonly [InputFrame, InputFrame]): GameE
 }
 
 // ───────────────────────────── input ─────────────────────────────
+
+const isDown = (f: Fighter): boolean => f.state === 'knockdown' || f.state === 'getup';
+
+/**
+ * The fair get-up rule. If one fighter is down and the other is free (not being hit, not down
+ * too), the free one is HELD: whatever they press is ignored, buffered presses are dropped, and
+ * a back-step is pressed for them until they are at least standoffDistance away. They wait there
+ * until the opponent is up. Returns the inputs the sim should actually use.
+ */
+function applyFairGetup(w: World, inputs: readonly [InputFrame, InputFrame]): [InputFrame, InputFrame] {
+  const out: [InputFrame, InputFrame] = [inputs[0], inputs[1]];
+  for (const f of w.fighters) {
+    const opp = opponentOf(w, f);
+    const held = RULES.fairGetup && isDown(opp) && !isDown(f) && !STATES[f.state].reaction;
+    f.held = held;
+    if (!held) continue;
+    for (const a of ACTIONS) f.buffer[a] = 0;
+    const gap = Math.abs(opp.x - f.x);
+    const cornered = Math.abs(f.x) >= STAGE.halfWidth - 6;
+    out[f.id] = gap < RULES.standoffDistance && !cornered && !STATES[f.state].air ? (f.facing === 1 ? Btn.LEFT : Btn.RIGHT) : 0;
+  }
+  return out;
+}
 
 function readInput(f: Fighter, input: InputFrame): void {
   const pressed = input & ~f.input;

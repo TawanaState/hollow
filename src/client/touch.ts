@@ -114,6 +114,14 @@ export class TouchPad implements InputSource {
     return this.stickBits | this.buttonBits;
   }
 
+  /** Let go of everything (used when the game is paused, so nothing is left held). */
+  reset(): void {
+    this.stickBits = 0;
+    this.buttonBits = 0;
+    for (const el of this.root.querySelectorAll('.down')) el.classList.remove('down');
+    this.root.querySelector('.stick-zone')?.classList.remove('active');
+  }
+
   show(visible: boolean): void {
     this.root.hidden = !visible;
     if (!visible) {

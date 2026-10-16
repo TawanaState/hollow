@@ -94,7 +94,7 @@ A skill-specific effect needs no code: `skill.<id>` is always a key (`'skill.rus
 
 ## Add or change a sound
 
-Sounds are synthesised, no files. In [`content/sfx.ts`](../src/content/sfx.ts) a key maps to layers of an oscillator and/or filtered noise with a pitch sweep and a decay. Keys follow the same events as VFX, and for tiered events `hit.heavy` is preferred over `hit` if present. To use recorded samples later, only `client/audio.ts` needs to learn to load them; the keys stay.
+Sounds are layered recipes in [`content/sfx.ts`](../src/content/sfx.ts): recorded `samples` (random variant, random pitch), synthesised `body` (sub-bass), and a synth `fallback` if the recordings could not load. Keys follow the same events as the effects, and for tiered events `hit.heavy` is preferred over `hit`. Hear and tune everything at `/sounds.html`. The full guide, including where the recordings come from and how to add more, is in [audio.md](audio.md).
 
 ## Change how fighters hold their hands
 

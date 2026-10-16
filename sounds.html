@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hollow · sound board</title>
+    <script>
+      try {
+        var t = localStorage.getItem('hollow.theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        var q = new URLSearchParams(location.search).get('theme');
+        if (q === 'light' || q === 'dark') t = q;
+        document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+  </head>
+  <body class="sandbox">
+    <header>
+      <b>hollow · sound board</b>
+      <span id="status">loading sounds…</span>
+      <label>volume <input type="range" id="vol" min="0" max="100" value="85" /></label>
+      <label>combo <select id="combo"><option value="1">1</option><option value="3">3</option><option value="6">6</option><option value="10">10</option></select></label>
+      <label>pan <input type="range" id="pan" min="-100" max="100" value="0" /></label>
+      <a href="/sandbox.html">poses</a>
+      <a href="/">game</a>
+    </header>
+    <main class="board">
+      <section id="demo">
+        <h3>In context</h3>
+        <button id="demo-fight" class="primary">▶ Play a whole fight</button>
+        <button id="demo-stop">■ Stop</button>
+        <p class="hint">Round 1, FIGHT, a jab string, a block, a parry, a heavy hit, a guard break, a combo, then the K.O. and the announcer. Listen for the weight of each hit and the ringing after the K.O.</p>
+      </section>
+      <div id="groups"></div>
+    </main>
+    <script type="module" src="/src/dev/sounds.ts"></script>
+  </body>
+</html>

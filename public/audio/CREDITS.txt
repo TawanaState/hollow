@@ -1,0 +1,10 @@
+Sound effects and voice lines by Kenney (https://kenney.nl), released under Creative Commons CC0 1.0
+(public domain, https://creativecommons.org/publicdomain/zero/1.0/). Credit is not required, but is given with thanks.
+
+- Impact Sounds: https://kenney.nl/assets/impact-sounds
+- Sci-fi Sounds: https://kenney.nl/assets/sci-fi-sounds
+- RPG Audio: https://kenney.nl/assets/rpg-audio
+- Interface Sounds: https://kenney.nl/assets/interface-sounds
+- Voiceover Pack: Fighter: https://opengameart.org/content/voiceover-pack-fighter-40-taunts
+
+Selected files are copied unmodified and renamed (see manifest.json). Everything else in the game's sound is synthesised in code.

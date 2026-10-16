@@ -1,8 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { AI } from '../src/content/ai.ts';
+import { AI, DIFFICULTY, difficultyOf } from '../src/content/ai.ts';
 import { Agent } from '../src/ai/agent.ts';
 import { BUTTON, BUTTONS, FULL_MASK, MOVE, N_OUT, actionToBits, bitsToAction, buttonMask, legalMask, moveMask } from '../src/ai/actions.ts';
 import { duel, playMatch } from '../src/ai/arena.ts';
+import { brainFromBuffer } from '../src/ai/brain.ts';
 import { Dataset } from '../src/ai/dataset.ts';
 import { OBS_DIM, Tracker, encode, schemaHash } from '../src/ai/features.ts';
 import { Guardrails } from '../src/ai/guardrails.ts';
@@ -281,5 +284,44 @@ describe('practice matches', () => {
     const net = new Mlp([OBS_DIM, 32, N_OUT], createRng(8));
     const r = playMatch([{ policy: new NetPolicy(net) }, { policy: new RandomPolicy() }], { seed: 3, maxFrames: 600 });
     expect(r.frames).toBeGreaterThan(0);
+  });
+});
+
+describe('difficulty presets', () => {
+  it('each preset is recognised as itself, and anything else is custom', () => {
+    for (const [id, d] of Object.entries(DIFFICULTY)) expect(difficultyOf(d)).toBe(id);
+    expect(difficultyOf({ randomness: 0.4, reaction: 8 })).toBe('custom');
+    expect(difficultyOf({ randomness: 0.11, reaction: 9 })).toBe('hard'); // a notch off still counts
+  });
+
+  it('really do get easier: a trained student wins less and less as the preset softens', () => {
+    const buf = readFileSync(resolve('public/personas/echo.bin'));
+    const net = brainFromBuffer(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer);
+    // a decent human stand-in: 200 ms reaction, a little sloppy
+    const human = () => ({ policy: new TeacherPolicy(TEACHERS.ember), settings: { reaction: 12, randomness: 0.2 } });
+    const rate = (preset: keyof typeof DIFFICULTY): number => {
+      const d = DIFFICULTY[preset];
+      return duel({ policy: new NetPolicy(net), settings: { randomness: d.randomness, reaction: d.reaction } }, human(), 24, 11).rate;
+    };
+    const brutal = rate('brutal');
+    const hard = rate('hard');
+    const easy = rate('easy');
+    expect(brutal).toBeGreaterThan(0.85);
+    expect(brutal).toBeGreaterThanOrEqual(hard - 0.1);
+    expect(hard).toBeGreaterThan(easy + 0.3);
+    expect(easy).toBeLessThan(0.55);
+  }, 60_000);
+
+  it('the reaction setting delays the AI by exactly that many frames', () => {
+    const w = fightWorld();
+    const light: Policy = { decide: () => ({ move: MOVE.neutral, button: BUTTON.light, value: 0 }) };
+    const firstPress = (reaction: number): number => {
+      const agent = new Agent({ slot: 0, getWorld: () => w, policy: light, settings: { randomness: 0, reaction, guardrails: false }, seed: 3 });
+      for (let i = 0; i < 40; i++) if (agent.poll() & Btn.LIGHT) return i;
+      return -1;
+    };
+    expect(firstPress(0)).toBe(0);
+    expect(firstPress(5)).toBe(5);
+    expect(firstPress(12)).toBe(12);
   });
 });

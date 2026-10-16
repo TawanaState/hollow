@@ -10,8 +10,9 @@
 
 * **Landscape, full screen.** The game fills the screen and keeps it awake. In portrait it asks you to turn the phone. Installed from the home screen it launches fullscreen and landscape, with no browser bars. In a normal browser tab, the ⛶ button (or `F`) goes fullscreen.
 * **On-screen controls**, drawn translucent over the fight so nothing is hidden and nothing scrolls:
-  * **Left thumb: a floating stick.** Touch anywhere on the left half, then drag. Left/right moves, **flick up to jump**, **down to crouch**. Because it is one finger, diagonals work (jump forward). A dashed ring shows where it starts.
-  * **Right thumb: five buttons** in an arc, **L**ight under your thumb, then **H**eavy, **S**kill, **G**uard, **D**ash. They fill in when pressed and give a small vibration where the phone supports it.
+  * **Left thumb: a floating stick, and the dash.** Touch anywhere on the left half, then drag. Left/right moves, **flick up to jump**, **down to crouch**. Because it is one finger, diagonals work (jump forward). A dashed ring shows where it starts, with the **D**ash button just above it, so everything about movement is on the left. Hold dash to keep running.
+  * **Right thumb: four buttons** in an arc, **L**ight under your thumb, then **H**eavy, **S**kill and **G**uard. They fill in when pressed and give a small vibration where the phone supports it.
+  * **Pause (⏸)** is in the top bar. It freezes the match and the sound, and offers Resume, Restart and Quit to menu. **Esc** or **P** pause on a keyboard. The game also pauses by itself if you switch to another app. (Online matches cannot be paused, because the other player is still playing.)
 * The page cannot be scrolled, pinch-zoomed or long-pressed into a menu, and respects notches (safe areas).
 * The camera lifts the scene a little while controls are showing, so the fighters' feet are not under your thumbs.
 * Controls appear on any touch device. `?touch` forces them on a desktop for testing.

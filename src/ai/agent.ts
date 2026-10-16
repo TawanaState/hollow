@@ -20,7 +20,7 @@ export interface AgentSettings {
    * sensible) action is played instead. 0 = full strength, 0.5 = half its decisions are random.
    */
   randomness: number;
-  /** F between something happening on screen and the AI seeing it. */
+  /** F between the AI making a choice and its hands acting on it (its reaction time). */
   reaction: number;
   /** Apply the ground rules (no endless jab spam, etc). */
   guardrails: boolean;
@@ -48,11 +48,21 @@ export interface DecisionRecord {
 /**
  * An AI player. It is just an InputSource, so it plugs into the same router as a keyboard, and
  * the game cannot tell the difference. Every AI.decisionFrames frames it:
- *   1. looks at the game (a little late, by the reaction setting),
+ *   1. looks at the game as it is right now,
  *   2. works out which actions are legal and allowed by the ground rules,
  *   3. asks its policy, unless the Randomness dial swaps in a random action,
- * then plays the choice out as button presses over the next few frames.
+ * then plays the choice out as button presses over the next few frames, `reaction` frames later.
  */
+/** An action waiting for its moment. */
+interface Queued {
+  action: Action;
+  /** The tick it takes effect. */
+  readyAt: number;
+  facing: Facing;
+}
+
+const NOTHING: Action = { move: 0, button: 0 };
+
 export class Agent implements InputSource {
   readonly kind = 'ai';
   settings: AgentSettings;
@@ -66,11 +76,13 @@ export class Agent implements InputSource {
   private readonly getWorld: () => World;
   private readonly rng: Rng;
   private readonly obs = new Float32Array(OBS_DIM);
-  private readonly ring: Float32Array[] = [];
-  private ringHead = 0;
+  /** Frames since the fight began. */
+  private tick = 0;
+  /** Position inside the current decision window. */
   private k = 0;
-  private action: Action = { move: 0, button: 0 };
-  private facing: Facing = 1;
+  /** Choices made but not yet acted on (reaction time). */
+  private pending: Queued[] = [];
+  private current: { action: Action; startAt: number; facing: Facing } = { action: NOTHING, startAt: 0, facing: 1 };
   private randomLeft = 0;
   private inFight = false;
 
@@ -80,7 +92,6 @@ export class Agent implements InputSource {
     this.policy = opts.policy;
     this.settings = { ...DEFAULT_SETTINGS, ...opts.settings };
     this.rng = createRng(opts.seed ?? Math.floor(Math.random() * 2 ** 32));
-    for (let i = 0; i <= AI.reaction.max; i++) this.ring.push(new Float32Array(OBS_DIM));
   }
 
   poll(): InputFrame {
@@ -91,45 +102,43 @@ export class Agent implements InputSource {
       return 0;
     }
     const me = w.fighters[this.slot];
-    const opp = w.fighters[this.slot === 0 ? 1 : 0];
     if (!this.inFight) {
       this.inFight = true;
       this.tracker.reset();
       this.rails.reset();
       this.randomLeft = 0;
       this.k = 0;
-      for (const r of this.ring) encode(me, opp, this.tracker, w.hitstop, r);
+      this.tick = 0;
+      this.pending.length = 0;
+      this.current = { action: NOTHING, startAt: 0, facing: me.facing };
     }
 
-    const delay = Math.min(AI.reaction.max, Math.max(0, Math.round(this.settings.reaction)));
-    if (delay > 0) {
-      encode(me, opp, this.tracker, w.hitstop, this.ring[this.ringHead]);
-      this.ringHead = (this.ringHead + 1) % this.ring.length;
-    }
+    if (this.k === 0) this.decide(w);
 
-    if (this.k === 0) this.decide(w, delay);
-    const bits = actionToBits(this.action, this.facing, this.k);
+    // A choice takes effect `reaction` frames after it was made. The brain always sees the
+    // situation as it is NOW; it is the hands that are slow (like a person's), which weakens
+    // timing gradually instead of blinding it.
+    while (this.pending.length > 0 && this.pending[0].readyAt <= this.tick) {
+      const q = this.pending.shift()!;
+      this.current = { action: q.action, startAt: q.readyAt, facing: q.facing };
+      // "what I did last" is what the hands actually did, so it always agrees with the world the brain sees
+      this.tracker.remember(q.action);
+    }
+    const bits = actionToBits(this.current.action, this.current.facing, this.tick - this.current.startAt);
+    this.tick++;
     this.k = (this.k + 1) % AI.decisionFrames;
     return bits;
   }
 
-  private decide(w: World, delay: number): void {
+  private decide(w: World): void {
     const me = w.fighters[this.slot];
     const opp = w.fighters[this.slot === 0 ? 1 : 0];
-    this.facing = me.facing;
     this.tracker.observe(opp, me);
 
     const legal = legalMask(me);
     const mask = this.settings.guardrails ? this.rails.apply(legal) : legal;
-
-    // what it sees: the world as it was `delay` frames ago
-    let obs: Float32Array = this.obs;
-    if (delay > 0) {
-      const idx = (this.ringHead - 1 - delay + this.ring.length * 2) % this.ring.length;
-      obs = this.ring[idx];
-    } else {
-      encode(me, opp, this.tracker, w.hitstop, this.obs);
-    }
+    const obs = this.obs;
+    encode(me, opp, this.tracker, w.hitstop, obs);
 
     // the Randomness dial: a random run replaces the brain's choice
     let action: Action;
@@ -158,9 +167,9 @@ export class Agent implements InputSource {
       value = d.value;
     }
 
-    this.action = action;
+    const delay = Math.min(AI.reaction.max, Math.max(0, Math.round(this.settings.reaction)));
+    this.pending.push({ action, readyAt: this.tick + delay, facing: me.facing });
     this.rails.record(action);
-    this.tracker.remember(action);
     this.stats.decisions++;
     this.onDecision?.({ obs, mask, action, value, random });
   }

@@ -10,6 +10,8 @@
 | `npm run typecheck` | three checks: client, core (no DOM/Node allowed), server |
 | `npm test` | vitest: sim rules, events/input API, server rooms |
 | `npm run train:base` | retrain the three starter personas into `public/personas/` (about 14 minutes; add `-- --quick` for a 1 minute smoke test) |
+| `npm run eval:base` | win-rate table of the shipped students under the current rules (run it after changing the rules, to see if they need retraining) |
+| `npm run audio` | re-download the CC0 sound packs and rebuild `public/audio/` from the selection in `scripts/fetch-audio.mts` |
 | `npm run teachers` | win-rate table of the scripted teacher bots against each other |
 | `npm run logo` | regenerate the logo, favicon and maskable icon |
 | `npm run icons` | render the PNG app icons from them (uses any installed Edge/Chrome) |
@@ -31,6 +33,8 @@ Requires Node 22+. The project uses TypeScript's `erasableSyntaxOnly` (no `enum`
 | `?students` | open the Students screen straight away |
 | `?watch=ember,stone` (`&ff=300`) | start two students fighting (and optionally skip ahead) |
 
+Open `/sounds.html` for the **sound board** (every sound, a scripted fight) and `/sandbox.html` for poses and animations.
+
 In the browser console: `hollow.world`, `hollow.session`, `hollow.bus`, `hollow.vfx`, `hollow.log(true)`, `hollow.onEvent(fn)`, and `hollow.ai` (`store`, `learner`, `controller`) for the students: for example `await hollow.ai.store.usage()` or `await hollow.ai.store.cleanup()`.
 
 ## Debugging a move
@@ -46,6 +50,7 @@ In the browser console: `hollow.world`, `hollow.session`, `hollow.bus`, `hollow.
 * `tests/api.test.ts`: `EventBus`, `InputRouter`, sources, `Game`, `describeEvent`, loopback transport, protocol decoding.
 * `tests/ai.test.ts`: the network (numerical gradient check, save/load, learning a mapping), what the AI sees (fixed size, identical from either side, knows distance and direction), actions and legality, the ground rules, the Randomness dial's share, replay packing, **that what is learned from a recording is exactly what the AI saw when it played**, and that practice matches are deterministic.
 * `tests/personas.test.ts`: the shipped brains (right size, beat random play), persona storage (versions, undo, reset, export/import, schema fallback), the storage tidy-up, the learning pipeline within its time budget, and that a recorded round replays to exactly the live game's final state. Uses `fake-indexeddb`.
+* `tests/audio.test.ts`: the sound files (real Ogg, size budget, every group used, credits) and the event-to-sound mapping, including the announcer.
 * `tests/server.test.ts`: seating, spectators, the authoritative loop producing hits, version rejection, promotion when a player leaves. All in-process.
 
 ## What is built, and what is not

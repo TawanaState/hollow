@@ -10,7 +10,7 @@ npm test           # sim, API, server, AI and storage tests
 npm run typecheck
 ```
 
-Open <http://localhost:5173/sandbox.html> for the pose and animation sandbox.
+Open <http://localhost:5173/sandbox.html> for the pose and animation sandbox, and <http://localhost:5173/sounds.html> for the sound board (every sound, plus a scripted fight).
 
 **Controls**
 
@@ -20,7 +20,7 @@ Open <http://localhost:5173/sandbox.html> for the pose and animation sandbox.
 | light · heavy · skill | `J K L` | `, . /` |
 | guard · dash | `U I` | `; '` |
 
-`T` theme · `M` sound · `Esc` menu · `R` restart (local) · `` ` `` hitboxes. Phones get on-screen buttons.
+`T` theme · `M` sound · `Esc` or `P` pause · `R` restart (local) · `` ` `` hitboxes. Phones get on-screen buttons and a pause button.
 
 **Students:** AI opponents that learn from you, on your device, offline. Play them, tune how hard they are (randomness and reaction sliders), or watch two of them fight. They tidy their own storage, and the Students screen shows what they use. See [docs/ai.md](docs/ai.md).
 

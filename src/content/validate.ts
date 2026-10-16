@@ -3,7 +3,7 @@ import { IMPACT, IMPACT_ORDER } from './impacts.ts';
 import { POSES } from './poses.ts';
 import { SKILLS } from './skills.ts';
 import { VFX } from './vfx.ts';
-import { SFX } from './sfx.ts';
+import { ANNOUNCER_LINES, SFX } from './sfx.ts';
 import type { AnimDef, Pose } from './types.ts';
 
 const POSE_KEYS: (keyof Pose)[] = [
@@ -82,10 +82,26 @@ export function validateContent(): string[] {
       if (step.minTier && !(step.minTier in IMPACT)) out.push(`vfx '${key}': unknown minTier '${step.minTier}'`);
     }
   }
-  for (const [key, layers] of Object.entries(SFX)) {
-    for (const l of layers) if (!(l.dur > 0)) out.push(`sfx '${key}': dur must be > 0`);
+  for (const [key, recipe] of Object.entries(SFX)) {
+    if (!recipe.samples && !recipe.body && !recipe.fallback) out.push(`sfx '${key}': has no layers at all`);
+    for (const l of [...(recipe.body ?? []), ...(recipe.fallback ?? [])]) {
+      if (!(l.dur > 0)) out.push(`sfx '${key}': a synth layer needs dur > 0`);
+      if (!(l.gain > 0)) out.push(`sfx '${key}': a synth layer needs gain > 0`);
+    }
+    for (const l of recipe.samples ?? []) {
+      if (!(l.gain > 0)) out.push(`sfx '${key}': sample '${l.sample}' needs gain > 0`);
+      if (l.rate && !(l.rate[0] > 0 && l.rate[0] <= l.rate[1])) out.push(`sfx '${key}': sample '${l.sample}' has a bad rate range`);
+    }
   }
   return out;
+}
+
+/** Every sample group the sound recipes use, plus the announcer's 'say-' groups. For checking against the audio manifest. */
+export function sampleGroupsUsed(): string[] {
+  const groups = new Set<string>();
+  for (const recipe of Object.values(SFX)) for (const l of recipe.samples ?? []) groups.add(l.sample);
+  for (const line of ANNOUNCER_LINES) groups.add(`say-${line}`);
+  return [...groups];
 }
 
 /** Throws with every problem listed. Called at startup so a typo fails loudly. */

@@ -51,6 +51,8 @@ export interface Fighter {
   /** Guard was raised freshly, so a hit inside the parry window is a parry. */
   guardFresh: boolean;
   koBounced: boolean;
+  /** Controls are switched off because the opponent is down (see RULES.fairGetup). */
+  held: boolean;
 
   /** Hits taken in the current combo and the damage they did. */
   combo: number;

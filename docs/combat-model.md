@@ -76,6 +76,17 @@ Every state change goes through one function, `transition(world, fighter, to, so
   * Geometry still counts: a hitbox that passes over a crouching hurtbox whiffs, which is how you duck a high punch.
 * **Push-box.** Grounded fighters cannot overlap (min separation `56 × BODY_SCALE`). If either is above 70 × scale they can pass, so you can jump over. A fighter pinned against the wall while in a reaction state pushes the opponent back instead (corner pressure).
 
+## 3b. Fair get-up
+
+Nobody gets hit while trying to stand up. While one fighter is **down** (knocked down or getting up), the other is **held**:
+
+* their controls are switched off, and any buffered presses are dropped;
+* they automatically **back-step** until they are at least 280 units away, then wait;
+* a **STEP BACK** label blinks on their name;
+* the moment the fallen fighter is on their feet, both are free again, with space between them.
+
+It applies to people, to the AI and online (it is part of the sim). It only holds a fighter who is free: one who is still being hit, or is down as well, is not held, so combos and juggles are unaffected. It is switched by `RULES.fairGetup` and the distance is `RULES.standoffDistance` in [`content/config.ts`](../src/content/config.ts). Because it changes how rounds play out, `SIM_VERSION` was bumped; recordings made under the old rules are discarded by the storage tidy-up instead of being replayed wrongly.
+
 ## 4. Impact: how hard a hit lands
 
 Each skill has one tier ([`content/impacts.ts`](../src/content/impacts.ts)):

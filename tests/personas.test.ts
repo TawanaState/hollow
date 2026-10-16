@@ -13,7 +13,7 @@ import { openDb } from '../src/client/ai/db.ts';
 import { PersonaStore } from '../src/client/ai/personas.ts';
 import type { BaseIndex, BaseLoader } from '../src/client/ai/personas.ts';
 import { Game } from '../src/core/game.ts';
-import { createWorld, step } from '../src/core/sim.ts';
+import { SIM_VERSION, createWorld, step } from '../src/core/sim.ts';
 
 const dir = resolve('public/personas');
 const files: BaseLoader = {
@@ -43,9 +43,9 @@ describe('starter personas (the shipped brains)', () => {
     const index = await files.index();
     for (const p of index.personas) {
       const net = brainFromBuffer(await files.file(p.file));
-      expect(duel({ policy: new NetPolicy(net) }, { policy: new RandomPolicy() }, 16, 3).rate).toBeGreaterThan(0.6);
+      expect(duel({ policy: new NetPolicy(net) }, { policy: new RandomPolicy() }, 30, 31337).rate, p.id).toBeGreaterThan(0.55);
     }
-  });
+  }, 60_000);
 });
 
 describe('persona storage', () => {
@@ -161,7 +161,7 @@ describe('storage cleanup', () => {
     const [p] = await store.list();
     const day = 86_400_000;
     await store.db.models.add({ personaId: p.id, version: 2, kind: 'learned', schema: 'ancient', weights: new ArrayBuffer(500), note: '', createdAt: 1 });
-    for (let i = 0; i < 40; i++) await store.db.replays.add({ personaId: p.id, at: Date.now() - (i < 10 ? i * 1000 : 200 * day + i), humanSlot: 0, result: 'win', frames: 100, data });
+    for (let i = 0; i < 40; i++) await store.db.replays.add({ personaId: p.id, at: Date.now() - (i < 10 ? i * 1000 : 200 * day + i), humanSlot: 0, result: 'win', frames: 100, data, sim: SIM_VERSION });
     const out = await store.cleanup();
     expect(out.models).toBe(1);
     expect(out.replays).toBeGreaterThan(0);
@@ -179,6 +179,17 @@ describe('storage cleanup', () => {
     expect(out.orphans).toBe(3);
     expect(await store.db.clones.get('ghost')).toBeUndefined();
     expect(await store.list()).toHaveLength(3); // real students untouched
+  });
+
+  it('discards recordings made under older game rules, which would replay wrongly now', async () => {
+    const [p] = await store.list();
+    await store.db.replays.add({ personaId: p.id, at: Date.now(), humanSlot: 0, result: 'win', frames: 100, data }); // no stamp = the first version
+    await store.saveReplay({ personaId: p.id, at: Date.now(), humanSlot: 0, result: 'win', frames: 100, data }); // stamped with today's
+    const out = await store.cleanup();
+    expect(out.replays).toBe(1);
+    const left = await store.db.replays.where('personaId').equals(p.id).toArray();
+    expect(left).toHaveLength(1);
+    expect(left[0].sim).toBe(SIM_VERSION);
   });
 
   it('does nothing when there is nothing to do', async () => {

@@ -24,3 +24,30 @@ export function savedHpScale(): number {
 export function saveHpScale(v: number): void {
   write('hollow.hpScale', String(v));
 }
+
+/** Sound on this device: 'full', 'quiet' (no announcer) or 'off'. */
+export type SoundMode = 'full' | 'quiet' | 'off';
+
+export function savedSoundMode(): SoundMode {
+  const v = read('hollow.sound', 'full');
+  return v === 'quiet' || v === 'off' ? v : 'full';
+}
+export function saveSoundMode(v: SoundMode): void {
+  write('hollow.sound', v);
+}
+
+export function savedVolume(): number {
+  const v = Number(read('hollow.volume', '85'));
+  return Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 85;
+}
+export function saveVolume(v: number): void {
+  write('hollow.volume', String(Math.round(v)));
+}
+
+/** The student last viewed on the Students screen. */
+export function savedStudent(): string {
+  return read('hollow.student', '');
+}
+export function saveStudent(id: string): void {
+  write('hollow.student', id);
+}

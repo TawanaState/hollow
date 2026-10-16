@@ -127,6 +127,80 @@ describe('dash', () => {
   });
 });
 
+describe('fair get-up', () => {
+  /** P2 has just been knocked down; P1 is standing close by. */
+  function knockedDown(): World {
+    const w = fight(100);
+    const f = w.fighters[1];
+    f.state = 'knockdown';
+    f.stateF = 0;
+    f.stateDur = RULES.knockdownF;
+    return w;
+  }
+
+  it('holds the standing fighter: no attacks, and they back away and wait', () => {
+    const w = knockedDown();
+    const events = run(w, 30, Btn.LIGHT | Btn.RIGHT); // mashing attack and forward
+    expect(w.fighters[0].held).toBe(true);
+    expect(w.fighters[0].state).not.toBe('attack');
+    expect(ofType(events, 'SKILL')).toHaveLength(0);
+    expect(Math.abs(w.fighters[1].x - w.fighters[0].x)).toBeGreaterThan(160); // stepped back
+    run(w, 30);
+    const gap = Math.abs(w.fighters[1].x - w.fighters[0].x);
+    expect(gap).toBeGreaterThanOrEqual(RULES.standoffDistance - 12); // far enough, then it waits
+    expect(gap).toBeLessThan(RULES.standoffDistance + 40);
+  });
+
+  it('gives control back the moment the opponent is on their feet, with the space kept', () => {
+    const w = knockedDown();
+    run(w, RULES.knockdownF + RULES.getupF + 6);
+    expect(w.fighters[1].state).toBe('idle');
+    run(w, 1, Btn.LIGHT);
+    expect(w.fighters[0].held).toBe(false);
+    expect(w.fighters[0].state).toBe('attack');
+    expect(Math.abs(w.fighters[1].x - w.fighters[0].x)).toBeGreaterThan(200);
+  });
+
+  it('drops presses made just before, so nothing fires the instant they are held', () => {
+    const w = fight(100);
+    run(w, 1, Btn.HEAVY); // an attack is buffered...
+    w.fighters[0].state = 'idle';
+    w.fighters[0].stateF = 0;
+    w.fighters[0].skill = null;
+    w.fighters[1].state = 'getup';
+    w.fighters[1].stateF = 0;
+    w.fighters[1].stateDur = 20;
+    const events = run(w, 10);
+    expect(ofType(events, 'SKILL')).toHaveLength(0);
+  });
+
+  it('does not hold anyone while the opponent is merely being hit, launched, or both are down', () => {
+    const w = fight(100);
+    w.fighters[1].state = 'launched';
+    w.fighters[1].y = 60;
+    run(w, 1);
+    expect(w.fighters[0].held).toBe(false);
+
+    const both = knockedDown();
+    both.fighters[0].state = 'knockdown';
+    both.fighters[0].stateDur = 30;
+    run(both, 1);
+    expect(both.fighters[0].held).toBe(false);
+    expect(both.fighters[1].held).toBe(false);
+  });
+
+  it('can be switched off', () => {
+    const w = knockedDown();
+    (RULES as { fairGetup: boolean }).fairGetup = false;
+    try {
+      const events = run(w, 6, Btn.LIGHT);
+      expect(ofType(events, 'SKILL').length).toBeGreaterThan(0);
+    } finally {
+      (RULES as { fairGetup: boolean }).fairGetup = true;
+    }
+  });
+});
+
 describe('combos and cancels', () => {
   it('jab cancels into cross on contact and damage scales down', () => {
     const w = fight();

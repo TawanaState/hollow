@@ -2,6 +2,7 @@ import { AI } from '../../content/ai.ts';
 import type { StyleId } from '../../content/ai.ts';
 import { SCHEMA, brainFromBuffer } from '../../ai/brain.ts';
 import type { Mlp } from '../../ai/nn.ts';
+import { SIM_VERSION } from '../../core/sim.ts';
 import { openDb } from './db.ts';
 import type { HollowDB, ModelRow, PersonaRow, PersonaSettings, ReplayRow } from './db.ts';
 
@@ -263,7 +264,7 @@ export class PersonaStore {
   }
 
   async saveReplay(row: Omit<ReplayRow, 'id'>): Promise<void> {
-    await this.db.replays.add(row);
+    await this.db.replays.add({ sim: SIM_VERSION, ...row });
     // only the most recent matches plus a handful of older ones are worth keeping
     const keep = AI.recentMatches + AI.rehearsalMatches * 3;
     const count = await this.db.replays.where('personaId').equals(row.personaId).count();
@@ -343,6 +344,8 @@ export class PersonaStore {
       const replays = await db.replays.toArray();
       await drop(db.models, models.filter((m) => !ids.has(m.personaId)), 'orphans');
       await drop(db.replays, replays.filter((r) => !ids.has(r.personaId)), 'orphans');
+      // recordings made under older rules would replay differently now, so they are no use
+      await drop(db.replays, replays.filter((r) => ids.has(r.personaId) && (r.sim ?? 1) !== SIM_VERSION), 'replays');
       for (const c of await db.clones.toArray()) {
         if (!ids.has(c.personaId)) {
           await db.clones.delete(c.personaId);
@@ -361,7 +364,7 @@ export class PersonaStore {
           await drop(db.models, mine.filter((m) => !keep.has(m.version)), 'models');
         }
         // matches: newest first; keep the study window, drop the rest if too many or too old
-        const plays = replays.filter((r) => r.personaId === id).sort((a, b) => b.at - a.at);
+        const plays = replays.filter((r) => r.personaId === id && (r.sim ?? 1) === SIM_VERSION).sort((a, b) => b.at - a.at);
         const surplus = plays.filter((r, i) => i >= keepMatches || (i >= AI.recentMatches && r.at < cutoff));
         await drop(db.replays, surplus, 'replays');
       }

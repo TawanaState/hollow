@@ -98,6 +98,14 @@ export const RULES = {
   energyOnDamaged: 0.04,
   blockEnergy: 2,
 
+  /**
+   * FAIR GET-UP. While a fighter is down (knocked down or getting up), the other fighter is held:
+   * their controls are switched off and they automatically step back to at least this distance
+   * and wait, until the opponent is on their feet again. Nobody gets hit while trying to stand up.
+   */
+  fairGetup: true,
+  standoffDistance: 280,
+
   knockdownF: 34,
   getupF: 22,
   /** Default pop when an airborne fighter is hit without an explicit launch. */

@@ -17,12 +17,12 @@
       "style": "ember",
       "file": "ember.bin",
       "winRates": {
-        "teacher:ember": 84,
+        "teacher:ember": 63,
         "teacher:stone": 34,
-        "teacher:echo": 53,
-        "random": 90,
-        "persona:stone": 40,
-        "persona:echo": 28
+        "teacher:echo": 50,
+        "random": 88,
+        "persona:stone": 25,
+        "persona:echo": 48
       }
     },
     {
@@ -33,11 +33,11 @@
       "file": "stone.bin",
       "winRates": {
         "teacher:ember": 88,
-        "teacher:stone": 48,
-        "teacher:echo": 80,
-        "random": 90,
-        "persona:ember": 75,
-        "persona:echo": 63
+        "teacher:stone": 65,
+        "teacher:echo": 68,
+        "random": 85,
+        "persona:ember": 84,
+        "persona:echo": 66
       }
     },
     {
@@ -48,11 +48,11 @@
       "file": "echo.bin",
       "winRates": {
         "teacher:ember": 85,
-        "teacher:stone": 38,
-        "teacher:echo": 65,
-        "random": 100,
-        "persona:ember": 75,
-        "persona:stone": 35
+        "teacher:stone": 40,
+        "teacher:echo": 63,
+        "random": 80,
+        "persona:ember": 60,
+        "persona:stone": 39
       }
     }
   ]

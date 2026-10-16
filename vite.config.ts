@@ -27,7 +27,7 @@ function walk(dir: string, root = dir): string[] {
 /**
  * Offline support without a dependency: after the build, list every emitted file and write
  * dist/sw.js from scripts/sw.template.js. The version is a hash of the file contents, so a new
- * build means a new cache and old ones are deleted. The dev-only sandbox is left out.
+ * build means a new cache and old ones are deleted. The dev-only pages (pose sandbox, sound board) are left out.
  */
 const offline = (): Plugin => {
   let config: ResolvedConfig;
@@ -39,7 +39,7 @@ const offline = (): Plugin => {
     },
     writeBundle() {
       const dist = resolve(config.root, config.build.outDir);
-      const files = walk(dist).filter((f) => f !== '/sw.js' && !f.includes('sandbox'));
+      const files = walk(dist).filter((f) => f !== '/sw.js' && !f.includes('sandbox') && !f.includes('/sounds'));
       const hash = createHash('sha1');
       for (const f of files) hash.update(f).update(readFileSync(join(dist, f)));
       const precache = ['/', ...files];
@@ -59,7 +59,7 @@ export default defineConfig({
   preview: { host: true },
   build: {
     rollupOptions: {
-      input: { main: 'index.html', sandbox: 'sandbox.html' },
+      input: { main: 'index.html', sandbox: 'sandbox.html', sounds: 'sounds.html' },
     },
   },
 });

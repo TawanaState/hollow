@@ -77,7 +77,8 @@
         <button id="btn-theme" title="Toggle dark / light (T)" aria-label="theme">◐</button>
         <button id="btn-sound" title="Mute (M)" aria-label="sound">♪</button>
         <button id="btn-full" title="Fullscreen (F)" aria-label="fullscreen" hidden>⛶</button>
-        <button id="btn-menu" title="Menu (Esc)" aria-label="menu">☰</button>
+        <button id="btn-pause" title="Pause (P or Esc)" aria-label="pause" hidden>⏸</button>
+        <button id="btn-menu" title="Menu" aria-label="menu">☰</button>
       </div>
 
       <div id="menu">
@@ -100,6 +101,16 @@
                   <option value="3">Epic</option>
                   <option value="5">Marathon</option>
                 </select>
+              </label>
+              <label class="field">Sound
+                <select id="sound-mode" aria-label="sound">
+                  <option value="full" selected>Full</option>
+                  <option value="quiet">No announcer</option>
+                  <option value="off">Off</option>
+                </select>
+              </label>
+              <label class="field">Volume
+                <input id="volume" type="range" min="0" max="100" value="85" aria-label="volume" />
               </label>
               <div class="online">
                 <input id="room" value="lobby" maxlength="24" spellcheck="false" autocapitalize="off" aria-label="room code" />
@@ -129,7 +140,12 @@
             <h2>Students</h2>
             <span id="ai-status"></span>
           </div>
+          <div class="pager">
+          <button id="ai-prev" aria-label="previous student">◀</button>
           <div id="ai-list"></div>
+          <button id="ai-next" aria-label="next student">▶</button>
+        </div>
+        <div id="ai-dots"></div>
           <details id="ai-watch" class="ai-block">
             <summary>Watch two students fight</summary>
             <div class="watch-row">
@@ -175,6 +191,17 @@
         <button data-speed="2">2×</button>
         <button data-speed="4">4×</button>
         <button data-speed="8">8×</button>
+      </div>
+
+      <div id="pause" hidden>
+        <div class="panel">
+          <h2>Paused</h2>
+          <div class="buttons">
+            <button class="primary" id="pause-resume">Resume</button>
+            <button id="pause-restart">Restart</button>
+            <button id="pause-menu">Quit to menu</button>
+          </div>
+        </div>
       </div>
 
       <div id="rotate">

@@ -17,6 +17,8 @@ export interface Session {
   readonly bus: EventBus;
   /** Advance by `dtMs` of real time (scaled by slow-mo). Returns interpolation alpha 0..1. */
   update(dtMs: number, timeScale: number): number;
+  /** Frozen. Local matches can be paused; an online match cannot (the other player is still playing). */
+  paused: boolean;
   /** Called right before each world change, with the world as it was. */
   onStep(fn: (before: World) => void): void;
   dispose(): void;
@@ -28,6 +30,7 @@ export class LocalSession implements Session {
   readonly game: Game;
   /** Playback speed multiplier (watching AI vs AI can run faster). */
   speed = 1;
+  paused = false;
   private acc = 0;
   private stepListeners: ((w: World) => void)[] = [];
 
@@ -49,6 +52,7 @@ export class LocalSession implements Session {
   }
 
   update(dtMs: number, timeScale: number): number {
+    if (this.paused) return this.acc / FRAME_MS;
     this.acc = Math.min(this.acc + dtMs * timeScale * this.speed, FRAME_MS * 16);
     while (this.acc >= FRAME_MS) {
       this.acc -= FRAME_MS;
@@ -152,6 +156,12 @@ export class OnlineSession implements Session {
   get world(): World {
     return this.current;
   }
+
+  /** Online matches cannot be paused. */
+  get paused(): boolean {
+    return false;
+  }
+  set paused(_value: boolean) {}
 
   onStep(fn: (before: World) => void): void {
     this.stepListeners.push(fn);

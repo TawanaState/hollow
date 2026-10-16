@@ -78,3 +78,29 @@ export const STYLES = {
 } as const satisfies Record<string, RewardStyle>;
 
 export type StyleId = keyof typeof STYLES;
+
+/**
+ * DIFFICULTY PRESETS: shortcuts for the two dials on a student (see docs/ai.md).
+ *
+ * REACTION is the main handicap: a student's choices take effect that many frames late. The
+ * brains win by reflex (they block a jab as it starts), so every frame of delay costs them a lot.
+ * Measured against a decent human stand-in (12 frame reaction, 20% sloppy), a student wins about:
+ *   Brutal 100%   Hard ~90%   Normal ~65%   Easy ~20%
+ * RANDOMNESS is a light seasoning on top: it makes play less predictable and a little sloppier.
+ */
+export const DIFFICULTY = {
+  easy: { label: 'Easy', randomness: 0.35, reaction: 17 },
+  normal: { label: 'Normal', randomness: 0.2, reaction: 12 },
+  hard: { label: 'Hard', randomness: 0.1, reaction: 8 },
+  brutal: { label: 'Brutal', randomness: 0, reaction: 0 },
+} as const;
+
+export type DifficultyId = keyof typeof DIFFICULTY;
+
+/** Which preset do these dial settings match (give or take a notch)? 'custom' if none. */
+export function difficultyOf(s: { randomness: number; reaction: number }): DifficultyId | 'custom' {
+  for (const [id, d] of Object.entries(DIFFICULTY)) {
+    if (Math.abs(d.randomness - s.randomness) <= 0.03 && Math.abs(d.reaction - s.reaction) <= 1) return id as DifficultyId;
+  }
+  return 'custom';
+}

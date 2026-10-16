@@ -14,7 +14,9 @@
     "logo": "node scripts/make-logo.mjs",
     "icons": "node scripts/make-icons.mjs",
     "train:base": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/train-base.mts",
-    "teachers": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/teachers.mts"
+    "teachers": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/teachers.mts",
+    "audio": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/fetch-audio.mts",
+    "eval:base": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/eval-personas.mts"
   },
   "dependencies": {
     "dexie": "^4.4.6",
@@ -24,6 +26,7 @@
     "@types/node": "^26.6.5",
     "@types/ws": "^8.18.2",
     "fake-indexeddb": "^6.2.6",
+    "fflate": "^0.8.3",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.5"

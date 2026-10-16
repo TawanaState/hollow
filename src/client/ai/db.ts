@@ -61,6 +61,8 @@ export interface ReplayRow {
   frames: number;
   /** Run-length packed inputs (see ai/replayPack.ts). */
   data: ArrayBuffer;
+  /** Which version of the game rules (SIM_VERSION) it was recorded under. Missing = the first version. */
+  sim?: number;
 }
 
 /** A persona's model of the human it plays: what it spars against when it practises. */

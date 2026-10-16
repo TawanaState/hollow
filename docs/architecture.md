@@ -25,7 +25,8 @@ src/core/      the sim and its API. No DOM, no clocks, no randomness, no trig
 src/net/       wire protocol + Transport interface. Runs anywhere
 src/ai/        the learning AI (features, network, training, teacher bots). Portable like core/
 src/client/    browser only: skeleton/FK, renderer, camera, vfx, audio, hud, keyboard, touch, session, main
-               (client/ai/: IndexedDB storage, the learning worker, the Students screen)
+               (client/ai/: IndexedDB storage, the learning worker, the Students screen;
+               audio.ts + foley.ts: the sound engine and everyday sounds, see audio.md)
 src/dev/       sandbox page, demo script
 server/        Node: rooms, WebSocket adapter, static file server
 tests/

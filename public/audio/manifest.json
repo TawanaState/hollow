@@ -1,0 +1,181 @@
+{
+  "hit-light": [
+    "hit-light-1.ogg",
+    "hit-light-2.ogg",
+    "hit-light-3.ogg",
+    "hit-light-4.ogg",
+    "hit-light-5.ogg"
+  ],
+  "hit-medium": [
+    "hit-medium-1.ogg",
+    "hit-medium-2.ogg",
+    "hit-medium-3.ogg",
+    "hit-medium-4.ogg",
+    "hit-medium-5.ogg"
+  ],
+  "hit-heavy": [
+    "hit-heavy-1.ogg",
+    "hit-heavy-2.ogg",
+    "hit-heavy-3.ogg",
+    "hit-heavy-4.ogg",
+    "hit-heavy-5.ogg"
+  ],
+  "body-soft": [
+    "body-soft-1.ogg",
+    "body-soft-2.ogg",
+    "body-soft-3.ogg"
+  ],
+  "body-heavy": [
+    "body-heavy-1.ogg",
+    "body-heavy-2.ogg",
+    "body-heavy-3.ogg"
+  ],
+  "crack-medium": [
+    "crack-medium-1.ogg",
+    "crack-medium-2.ogg",
+    "crack-medium-3.ogg"
+  ],
+  "crack-heavy": [
+    "crack-heavy-1.ogg",
+    "crack-heavy-2.ogg",
+    "crack-heavy-3.ogg"
+  ],
+  "clank-light": [
+    "clank-light-1.ogg",
+    "clank-light-2.ogg",
+    "clank-light-3.ogg"
+  ],
+  "clank-medium": [
+    "clank-medium-1.ogg",
+    "clank-medium-2.ogg",
+    "clank-medium-3.ogg"
+  ],
+  "clank-heavy": [
+    "clank-heavy-1.ogg",
+    "clank-heavy-2.ogg",
+    "clank-heavy-3.ogg"
+  ],
+  "glass-heavy": [
+    "glass-heavy-1.ogg",
+    "glass-heavy-2.ogg",
+    "glass-heavy-3.ogg"
+  ],
+  "bell": [
+    "bell-1.ogg",
+    "bell-2.ogg",
+    "bell-3.ogg"
+  ],
+  "field": [
+    "field-1.ogg",
+    "field-2.ogg"
+  ],
+  "wood-heavy": [
+    "wood-heavy-1.ogg",
+    "wood-heavy-2.ogg",
+    "wood-heavy-3.ogg"
+  ],
+  "step": [
+    "step-1.ogg",
+    "step-2.ogg",
+    "step-3.ogg",
+    "step-4.ogg",
+    "step-5.ogg"
+  ],
+  "boom": [
+    "boom-1.ogg",
+    "boom-2.ogg"
+  ],
+  "crunch": [
+    "crunch-1.ogg",
+    "crunch-2.ogg"
+  ],
+  "swish": [
+    "swish-1.ogg",
+    "swish-2.ogg",
+    "swish-3.ogg"
+  ],
+  "chop": [
+    "chop.ogg"
+  ],
+  "cloth": [
+    "cloth-1.ogg",
+    "cloth-2.ogg",
+    "cloth-3.ogg",
+    "cloth-4.ogg"
+  ],
+  "zap": [
+    "zap-1.ogg",
+    "zap-2.ogg",
+    "zap-3.ogg"
+  ],
+  "ui-click": [
+    "ui-click-1.ogg",
+    "ui-click-2.ogg",
+    "ui-click-3.ogg"
+  ],
+  "ui-select": [
+    "ui-select-1.ogg",
+    "ui-select-2.ogg"
+  ],
+  "ui-confirm": [
+    "ui-confirm-1.ogg",
+    "ui-confirm-2.ogg"
+  ],
+  "ui-back": [
+    "ui-back.ogg"
+  ],
+  "ui-open": [
+    "ui-open.ogg"
+  ],
+  "ui-close": [
+    "ui-close.ogg"
+  ],
+  "ui-tick": [
+    "ui-tick.ogg"
+  ],
+  "ui-toggle": [
+    "ui-toggle.ogg"
+  ],
+  "ui-error": [
+    "ui-error.ogg"
+  ],
+  "say-fight": [
+    "say-fight.ogg"
+  ],
+  "say-round-1": [
+    "say-round-1.ogg"
+  ],
+  "say-round-2": [
+    "say-round-2.ogg"
+  ],
+  "say-round-3": [
+    "say-round-3.ogg"
+  ],
+  "say-round-4": [
+    "say-round-4.ogg"
+  ],
+  "say-round-5": [
+    "say-round-5.ogg"
+  ],
+  "say-final-round": [
+    "say-final-round.ogg"
+  ],
+  "say-combo": [
+    "say-combo.ogg"
+  ],
+  "say-flawless": [
+    "say-flawless.ogg"
+  ],
+  "say-winner": [
+    "say-winner.ogg"
+  ],
+  "say-you-win": [
+    "say-you-win.ogg"
+  ],
+  "say-you-lose": [
+    "say-you-lose.ogg"
+  ],
+  "say-tie": [
+    "say-tie.ogg"
+  ]
+}
