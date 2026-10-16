@@ -301,17 +301,33 @@ export class Audio {
     const src = ctx.createBufferSource();
     src.buffer = clip.buffer;
     const [lo, hi] = layer.rate ?? [1, 1];
-    src.playbackRate.value = rand(lo, hi) * rateBoost;
+    const rate = rand(lo, hi) * rateBoost;
+    const at = now + (layer.delay ?? 0) * (FRAME_MS / 1000);
+    src.playbackRate.setValueAtTime(rate, at);
+    if (layer.bend) src.playbackRate.exponentialRampToValueAtTime(Math.max(0.1, rate * layer.bend), at + clip.buffer.duration / rate);
     const g = ctx.createGain();
     g.gain.value = layer.gain * clip.norm * gain;
-    src.connect(g).connect(out);
+    // per-layer EQ: shape the recording before it joins the mix
+    let tail: AudioNode = src;
+    const eq = (type: BiquadFilterType, freq: number, dB = 0): void => {
+      const f = ctx.createBiquadFilter();
+      f.type = type;
+      f.frequency.value = freq;
+      f.gain.value = dB;
+      tail.connect(f);
+      tail = f;
+    };
+    if (layer.hp) eq('highpass', layer.hp);
+    if (layer.lp) eq('lowpass', layer.lp);
+    if (layer.low) eq('lowshelf', 200, layer.low);
+    if (layer.high) eq('highshelf', 3000, layer.high);
+    tail.connect(g).connect(out);
     const send = layer.reverb ?? recipe.reverb ?? 0;
     if (send > 0) {
       const s = ctx.createGain();
       s.gain.value = send;
       g.connect(s).connect(this.reverbIn);
     }
-    const at = now + (layer.delay ?? 0) * (FRAME_MS / 1000);
     src.start(at);
     this.active++;
     src.onended = () => this.active--;

@@ -28,7 +28,18 @@ Every sound is a recipe in [`content/sfx.ts`](../src/content/sfx.ts) with up to 
 | `body` | synthesised low end: sub-bass thumps, risers. This is what gives heavy hits their chest-weight |
 | `fallback` | a fully synthesised version, used only if the recordings could not be loaded (so the game is never silent) |
 
-The tiers stack up. A **light** hit is a sharp tap with a little thud. A **heavy** hit adds a body thud, a plate crack and a sub-bass sweep (85→34 Hz) with a reverb tail. A **crush** hit (the ultimate, or a counter-hit that kills) layers a pitched-down heavy punch, a plate crack, a metal clank, a low explosion, a hint of glass, and a 62→24 Hz sub-boom, with a big reverb and a short "duck" that makes everything else dip so the hit lands. Measured loudness climbs the same way (RMS: light −31 dB, medium −26, heavy −22, crush −19, K.O. −17).
+Each `samples` layer can also be **EQ'd and bent**, so one recording can be reshaped without editing the file:
+
+| Option | Effect |
+|---|---|
+| `lp` / `hp` | cut everything above / below this frequency (Hz). `lp: 1500` removes the hiss and ring from a swish |
+| `low` / `high` | boost or cut the lows (under about 200 Hz) or highs (over about 3 kHz) in dB. `low: 8` adds chest |
+| `rate` | playback speed, which also sets the pitch. Below 1 is lower and heavier |
+| `bend` | the pitch slides to this multiple of itself over the sound. `bend: 0.7` is a falling swoop |
+
+**Keep it bass-forward.** The raw Kenney metal, glass and bell recordings sound like clicking machinery next to a punch, so they are used only as a trace (low gain, low-passed, pitched down). The weight comes from the body and punch recordings, a low-end boost, and a sub-bass sine on every tier. Attacks are low, airy swoops with a thump of effort instead of a bright hiss; blocks are thuds on a raised guard instead of clanks; the K.O. drops away in a falling swoop.
+
+The tiers stack up. A **light** hit is a sharp tap with a little thud. A **heavy** hit adds a body thud, a plate crack and a sub-bass sweep (85→34 Hz) with a reverb tail. A **crush** hit (the ultimate, or a counter-hit that kills) layers a pitched-down heavy punch, a plate crack, a metal clank, a low explosion, a hint of glass, and a 62→24 Hz sub-boom, with a big reverb and a short "duck" that makes everything else dip so the hit lands. Measured loudness climbs the same way (RMS: light −29 dB, medium −24, heavy −20, crush −16, K.O. −14).
 
 Other things the engine does, all from the recipe:
 
@@ -72,7 +83,7 @@ Keep `body` layers on anything that should feel heavy; keep a `fallback` on anyt
 
 ## Verifying it (what was measured)
 
-The sounds were checked by rendering each one offline in a real browser and measuring it: all 93 recordings decode, loudness climbs with the hit tier, the heavy sounds are dominated by the low end (over 80% of their energy is under about 200 Hz), nothing clips, quiet sounds (footsteps, UI) are audible, and the K.O. really does close the top end. The tests check the files themselves (real Ogg audio, under the size budget, every group a recipe uses exists, nothing shipped unused, credits present) and the event-to-sound mapping. **How it sounds is for your ears**: use the sound board and tell me what to change.
+The sounds were checked by rendering each one offline in a real browser and measuring it: all 93 recordings decode, loudness climbs with the hit tier, the hits, blocks and the K.O. put about 70–85% of their energy under 200 Hz, and the attack swooshes about a third, with almost none of the 'metal' band that used to dominate them, nothing clips, quiet sounds (footsteps, UI) are audible, and the K.O. really does close the top end. The tests check the files themselves (real Ogg audio, under the size budget, every group a recipe uses exists, nothing shipped unused, credits present) and the event-to-sound mapping. **How it sounds is for your ears**: use the sound board and tell me what to change.
 
 ## Notes and limits
 

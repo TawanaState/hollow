@@ -33,6 +33,14 @@ export interface SampleLayer {
   delay?: number;
   /** How much of this layer goes to the reverb (0..1). Overrides the recipe's. */
   reverb?: number;
+  /** EQ for this layer only: cut everything above / below these frequencies (Hz). */
+  lp?: number;
+  hp?: number;
+  /** Boost (+) or cut (-) the lows (below ~200 Hz) / highs (above ~3 kHz), in dB. */
+  low?: number;
+  high?: number;
+  /** The pitch slides to this multiple of itself over the sound: under 1 is a falling swoop. */
+  bend?: number;
 }
 
 export interface SfxRecipe {
@@ -56,8 +64,8 @@ const S = (sample: string, gain: number, rate?: readonly [number, number], extra
 export const SFX: Record<string, SfxRecipe> = {
   // ───────── hits: the heavier the tier, the more layers and the lower the bottom ─────────
   'hit.light': {
-    samples: [S('hit-light', 1.35, [0.92, 1.14]), S('body-soft', 0.4, [1.15, 1.35])],
-    body: [{ dur: 5, gain: 0.4, osc: { type: 'sine', from: 170, to: 90 } }],
+    samples: [S('hit-light', 0.81, [0.88, 1.05], { low: 5, lp: 6000 }), S('body-soft', 0.33, [1.0, 1.2], { low: 4 })],
+    body: [{ dur: 5, gain: 0.24, osc: { type: 'sine', from: 170, to: 90 } }],
     fallback: [
       { dur: 5, gain: 0.5, noise: { filter: 'bandpass', from: 1800, to: 600, q: 1.2 } },
       { dur: 6, gain: 0.45, osc: { type: 'sine', from: 180, to: 90 } },
@@ -66,8 +74,8 @@ export const SFX: Record<string, SfxRecipe> = {
     combo: true,
   },
   'hit.medium': {
-    samples: [S('hit-medium', 1, [0.92, 1.08]), S('body-soft', 0.6, [0.85, 1]), S('crack-medium', 0.3, [1, 1.2])],
-    body: [{ dur: 9, gain: 0.5, osc: { type: 'sine', from: 130, to: 55 } }],
+    samples: [S('hit-medium', 0.5, [0.86, 1], { low: 6, lp: 6000 }), S('body-soft', 0.35, [0.8, 0.95], { low: 5 }), S('crack-medium', 0.09, [0.9, 1.05], { lp: 3200 })],
+    body: [{ dur: 9, gain: 0.25, osc: { type: 'sine', from: 130, to: 55 } }],
     fallback: [
       { dur: 8, gain: 0.6, noise: { filter: 'lowpass', from: 1400, to: 300 } },
       { dur: 9, gain: 0.55, osc: { type: 'sine', from: 140, to: 60 } },
@@ -76,10 +84,10 @@ export const SFX: Record<string, SfxRecipe> = {
     combo: true,
   },
   'hit.heavy': {
-    samples: [S('hit-heavy', 1.1, [0.86, 1]), S('body-heavy', 0.8, [0.8, 0.95]), S('crack-heavy', 0.42, [0.95, 1.1])],
+    samples: [S('hit-heavy', 0.61, [0.8, 0.95], { low: 7, lp: 6500 }), S('body-heavy', 0.52, [0.75, 0.9], { low: 5 }), S('crack-heavy', 0.17, [0.85, 1], { lp: 3600 })],
     body: [
-      { dur: 16, gain: 0.8, osc: { type: 'sine', from: 85, to: 34 } },
-      { dur: 10, gain: 0.3, noise: { filter: 'lowpass', from: 900, to: 150 } },
+      { dur: 16, gain: 0.44, osc: { type: 'sine', from: 85, to: 34 } },
+      { dur: 10, gain: 0.17, noise: { filter: 'lowpass', from: 900, to: 150 } },
     ],
     fallback: [
       { dur: 12, gain: 0.8, noise: { filter: 'lowpass', from: 900, to: 150 } },
@@ -90,15 +98,16 @@ export const SFX: Record<string, SfxRecipe> = {
   },
   'hit.crush': {
     samples: [
-      S('hit-heavy', 1.2, [0.7, 0.8]),
-      S('crack-heavy', 0.7, [0.78, 0.9]),
-      S('clank-heavy', 0.4, [0.7, 0.8]),
-      S('boom', 0.85, [0.9, 1]),
-      S('glass-heavy', 0.22, [0.9, 1.1], { delay: 2 }),
+      S('hit-heavy', 0.6, [0.65, 0.75], { low: 8, lp: 5000 }),
+      S('body-heavy', 0.45, [0.6, 0.7], { low: 6 }),
+      S('crack-heavy', 0.17, [0.7, 0.85], { lp: 2600 }),
+      S('clank-heavy', 0.06, [0.55, 0.65], { lp: 1400 }),
+      S('boom', 0.5, [0.85, 0.95], { low: 4 }),
+      S('glass-heavy', 0.03, [0.7, 0.9], { delay: 2, lp: 2500 }),
     ],
     body: [
-      { dur: 34, gain: 1, osc: { type: 'sine', from: 62, to: 24 } },
-      { dur: 26, gain: 0.45, noise: { filter: 'lowpass', from: 700, to: 70 } },
+      { dur: 34, gain: 0.5, osc: { type: 'sine', from: 62, to: 24 } },
+      { dur: 26, gain: 0.23, noise: { filter: 'lowpass', from: 700, to: 70 } },
     ],
     fallback: [
       { dur: 24, gain: 1, noise: { filter: 'lowpass', from: 700, to: 80 } },
@@ -115,41 +124,42 @@ export const SFX: Record<string, SfxRecipe> = {
 
   // ───────── defence ─────────
   'block.light': {
-    samples: [S('clank-light', 1.3, [0.95, 1.12]), S('body-soft', 0.25, [1.2, 1.4])],
-    fallback: [{ dur: 5, gain: 0.35, noise: { filter: 'highpass', from: 2500, to: 1500 } }, { dur: 6, gain: 0.3, osc: { type: 'triangle', from: 520, to: 380 } }],
-    reverb: 0.05,
+    samples: [S('body-soft', 0.54, [0.9, 1.05], { low: 6, lp: 4500 }), S('wood-heavy', 0.27, [1.1, 1.3], { lp: 3500 }), S('clank-light', 0.18, [0.7, 0.85], { lp: 1800, hp: 200 })],
+    body: [{ dur: 6, gain: 0.21, osc: { type: 'sine', from: 160, to: 80 } }],
+    fallback: [{ dur: 5, gain: 0.4, noise: { filter: 'lowpass', from: 1600, to: 400 } }, { dur: 6, gain: 0.4, osc: { type: 'sine', from: 180, to: 90 } }],
+    reverb: 0.06,
   },
   'block.medium': {
-    samples: [S('clank-medium', 1.3, [0.92, 1.08]), S('crack-medium', 0.3, [1.1, 1.3])],
-    body: [{ dur: 8, gain: 0.3, osc: { type: 'sine', from: 140, to: 70 } }],
-    fallback: [{ dur: 5, gain: 0.35, noise: { filter: 'highpass', from: 2500, to: 1500 } }, { dur: 6, gain: 0.3, osc: { type: 'triangle', from: 520, to: 380 } }],
+    samples: [S('hit-medium', 0.44, [0.8, 0.95], { low: 7, lp: 4000 }), S('wood-heavy', 0.33, [0.9, 1.05], { lp: 3200 }), S('clank-medium', 0.14, [0.6, 0.75], { lp: 1600, hp: 150 })],
+    body: [{ dur: 10, gain: 0.3, osc: { type: 'sine', from: 125, to: 55 } }],
+    fallback: [{ dur: 8, gain: 0.5, noise: { filter: 'lowpass', from: 1500, to: 300 } }, { dur: 9, gain: 0.5, osc: { type: 'sine', from: 140, to: 60 } }],
     reverb: 0.1,
   },
   'block.heavy': {
-    samples: [S('clank-heavy', 1.05, [0.88, 1]), S('crack-heavy', 0.3, [1, 1.15])],
-    body: [{ dur: 12, gain: 0.5, osc: { type: 'sine', from: 100, to: 45 } }],
-    fallback: [{ dur: 5, gain: 0.35, noise: { filter: 'highpass', from: 2500, to: 1500 } }, { dur: 6, gain: 0.3, osc: { type: 'triangle', from: 520, to: 380 } }],
+    samples: [S('hit-heavy', 0.47, [0.7, 0.85], { low: 8, lp: 3500 }), S('body-heavy', 0.44, [0.75, 0.9], { low: 5 }), S('clank-heavy', 0.11, [0.55, 0.7], { lp: 1500, hp: 120 })],
+    body: [{ dur: 16, gain: 0.41, osc: { type: 'sine', from: 95, to: 40 } }],
+    fallback: [{ dur: 12, gain: 0.6, noise: { filter: 'lowpass', from: 1200, to: 200 } }, { dur: 15, gain: 0.7, osc: { type: 'sine', from: 100, to: 42 } }],
     reverb: 0.16,
   },
   'block.crush': {
-    samples: [S('clank-heavy', 1.1, [0.7, 0.8]), S('boom', 0.5, [1.1, 1.3]), S('crack-heavy', 0.5, [0.8, 0.9])],
-    body: [{ dur: 20, gain: 0.7, osc: { type: 'sine', from: 80, to: 30 } }],
-    fallback: [{ dur: 8, gain: 0.5, noise: { filter: 'highpass', from: 2500, to: 1000 } }, { dur: 12, gain: 0.5, osc: { type: 'triangle', from: 400, to: 200 } }],
-    reverb: 0.3,
+    samples: [S('hit-heavy', 0.47, [0.6, 0.72], { low: 9, lp: 3000 }), S('boom', 0.35, [1, 1.15], { low: 4 }), S('body-heavy', 0.4, [0.6, 0.7]), S('clank-heavy', 0.07, [0.5, 0.6], { lp: 1200 })],
+    body: [{ dur: 26, gain: 0.45, osc: { type: 'sine', from: 78, to: 28 } }],
+    fallback: [{ dur: 14, gain: 0.6, noise: { filter: 'lowpass', from: 1000, to: 100 } }, { dur: 20, gain: 0.7, osc: { type: 'sine', from: 90, to: 30 } }],
+    reverb: 0.32,
   },
   parry: {
-    samples: [S('bell', 0.75, [1.15, 1.3]), S('field', 0.55, [1.1, 1.25]), S('clank-light', 0.55, [1.4, 1.6]), S('glass-heavy', 0.2, [1.4, 1.6])],
-    body: [{ dur: 18, gain: 0.18, osc: { type: 'sine', from: 1400, to: 2600 } }],
+    samples: [S('hit-medium', 0.52, [1.1, 1.25], { lp: 5000, low: 3 }), S('field', 0.3, [0.7, 0.85], { low: 6, lp: 3500 }), S('bell', 0.21, [0.7, 0.85], { lp: 3000, low: 3 }), S('boom', 0.34, [1.5, 1.7], { low: 3 })],
+    body: [{ dur: 14, gain: 0.34, osc: { type: 'sine', from: 140, to: 60 } }],
     fallback: [
-      { dur: 16, gain: 0.35, osc: { type: 'sine', from: 1400, to: 2600 } },
-      { dur: 8, gain: 0.3, noise: { filter: 'highpass', from: 6000, to: 4000 } },
+      { dur: 14, gain: 0.3, osc: { type: 'sine', from: 900, to: 1800 } },
+      { dur: 12, gain: 0.45, osc: { type: 'sine', from: 140, to: 60 } },
     ],
     reverb: 0.4,
     duck: { amount: 0.55, dur: 16 },
   },
   guardBreak: {
-    samples: [S('glass-heavy', 0.95, [0.85, 1]), S('clank-heavy', 0.8, [0.75, 0.9]), S('boom', 0.6, [1.2, 1.4], { delay: 1 })],
-    body: [{ dur: 24, gain: 0.7, osc: { type: 'sine', from: 90, to: 32 } }],
+    samples: [S('hit-heavy', 0.55, [0.6, 0.72], { low: 8, lp: 4500 }), S('boom', 0.5, [1, 1.15], { delay: 1, low: 4 }), S('glass-heavy', 0.15, [0.55, 0.7], { lp: 2600 }), S('clank-heavy', 0.11, [0.5, 0.6], { lp: 1400 })],
+    body: [{ dur: 30, gain: 0.52, osc: { type: 'sine', from: 90, to: 30 } }],
     fallback: [
       { dur: 24, gain: 0.7, osc: { type: 'sawtooth', from: 320, to: 60 } },
       { dur: 12, gain: 0.5, noise: { filter: 'bandpass', from: 2000, to: 400 } },
@@ -160,36 +170,41 @@ export const SFX: Record<string, SfxRecipe> = {
 
   // ───────── movement: whooshes get lower and longer as the move gets bigger ─────────
   'skill.light': {
-    samples: [S('swish', 0.6, [1.05, 1.35]), S('cloth', 0.15, [1.2, 1.5])],
+    samples: [S('swish', 0.7, [0.65, 0.8], { lp: 1500, low: 10, bend: 0.75 }), S('cloth', 0.15, [0.7, 0.9], { lp: 1500, low: 6 })],
+    body: [{ dur: 8, gain: 0.45, osc: { type: 'sine', from: 130, to: 62 } }, { dur: 10, gain: 0.3, noise: { filter: 'lowpass', from: 250, to: 1100 } }],
     fallback: [{ dur: 9, gain: 0.22, noise: { filter: 'bandpass', from: 400, to: 2400, q: 0.9 } }],
+    reverb: 0.05,
     limit: 3,
   },
   'skill.medium': {
-    samples: [S('swish', 0.95, [0.9, 1.1]), S('cloth', 0.3, [0.9, 1.1])],
+    samples: [S('swish', 0.85, [0.55, 0.7], { lp: 1400, low: 11, bend: 0.7 }), S('cloth', 0.3, [0.6, 0.75], { lp: 1400, low: 6 })],
+    body: [{ dur: 11, gain: 0.55, osc: { type: 'sine', from: 115, to: 50 } }, { dur: 13, gain: 0.34, noise: { filter: 'lowpass', from: 220, to: 1100 } }],
     fallback: [{ dur: 9, gain: 0.22, noise: { filter: 'bandpass', from: 400, to: 2400, q: 0.9 } }],
+    reverb: 0.07,
     limit: 3,
   },
   'skill.heavy': {
-    samples: [S('swish', 0.78, [0.7, 0.85]), S('cloth', 0.3, [0.7, 0.85]), S('chop', 0.14, [0.6, 0.7], { delay: 2 })],
-    body: [{ dur: 14, gain: 0.18, noise: { filter: 'lowpass', from: 300, to: 1800 } }],
+    samples: [S('swish', 0.85, [0.45, 0.6], { lp: 1300, low: 12, bend: 0.65 }), S('cloth', 0.3, [0.5, 0.65], { lp: 1300, low: 6 }), S('chop', 0.2, [0.45, 0.55], { delay: 2, lp: 1600, low: 8 })],
+    body: [{ dur: 16, gain: 0.65, osc: { type: 'sine', from: 100, to: 40 } }, { dur: 16, gain: 0.36, noise: { filter: 'lowpass', from: 200, to: 1200 } }],
     fallback: [{ dur: 14, gain: 0.3, noise: { filter: 'lowpass', from: 300, to: 1800 } }],
+    reverb: 0.1,
     limit: 3,
   },
   'skill.crush': {
-    samples: [S('zap', 0.7, [0.6, 0.8]), S('swish', 0.7, [0.55, 0.65]), S('field', 0.3, [0.7, 0.85])],
+    samples: [S('swish', 0.45, [0.45, 0.55], { lp: 2200, low: 9, bend: 0.65 }), S('zap', 0.17, [0.45, 0.6], { lp: 2500, low: 6 }), S('field', 0.23, [0.55, 0.7], { lp: 2600, low: 8 }), S('boom', 0.25, [1.4, 1.6], { delay: 4, low: 4 })],
     body: [
-      { dur: 26, gain: 0.3, osc: { type: 'sawtooth', from: 90, to: 520 } },
-      { dur: 22, gain: 0.25, noise: { filter: 'bandpass', from: 200, to: 3600, q: 0.7 } },
+      { dur: 30, gain: 0.3, osc: { type: 'sine', from: 80, to: 36 } },
+      { dur: 26, gain: 0.15, noise: { filter: 'lowpass', from: 200, to: 2200, q: 0.7 } },
     ],
     fallback: [
       { dur: 24, gain: 0.45, noise: { filter: 'bandpass', from: 200, to: 3600, q: 0.7 } },
       { dur: 24, gain: 0.35, osc: { type: 'sawtooth', from: 120, to: 480 } },
     ],
-    reverb: 0.25,
+    reverb: 0.3,
   },
   dash: {
-    samples: [S('cloth', 0.6, [0.9, 1.2]), S('swish', 0.4, [1.3, 1.5])],
-    body: [{ dur: 12, gain: 0.12, noise: { filter: 'bandpass', from: 600, to: 200 } }],
+    samples: [S('cloth', 0.6, [0.75, 0.95], { lp: 2600, low: 5 }), S('swish', 0.4, [0.9, 1.1], { lp: 2200, low: 6, bend: 0.8 })],
+    body: [{ dur: 12, gain: 0.18, noise: { filter: 'bandpass', from: 500, to: 180 } }, { dur: 8, gain: 0.2, osc: { type: 'sine', from: 100, to: 55 } }],
     fallback: [{ dur: 10, gain: 0.2, noise: { filter: 'bandpass', from: 600, to: 200 } }],
     limit: 6,
   },
@@ -218,12 +233,22 @@ export const SFX: Record<string, SfxRecipe> = {
 
   // ───────── the big moments ─────────
   ko: {
-    samples: [S('boom', 1, [0.75, 0.85]), S('crunch', 0.7, [0.7, 0.8]), S('clank-heavy', 0.6, [0.55, 0.65]), S('glass-heavy', 0.3, [0.7, 0.8], { delay: 3 })],
+    samples: [
+      S('boom', 0.55, [0.65, 0.75], { low: 6 }),
+      S('hit-heavy', 0.45, [0.55, 0.65], { low: 8, lp: 4000 }),
+      S('body-heavy', 0.45, [0.55, 0.65], { low: 6 }),
+      S('crunch', 0.28, [0.6, 0.7], { lp: 3000, low: 4 }),
+      S('clank-heavy', 0.06, [0.45, 0.55], { lp: 1200 }),
+      S('glass-heavy', 0.03, [0.6, 0.7], { delay: 3, lp: 2200 }),
+    ],
     body: [
-      { dur: 70, gain: 1, osc: { type: 'sine', from: 56, to: 18 } },
-      { dur: 44, gain: 0.5, noise: { filter: 'lowpass', from: 600, to: 60 } },
+      { dur: 70, gain: 0.5, osc: { type: 'sine', from: 56, to: 18 } },
+      { dur: 44, gain: 0.25, noise: { filter: 'lowpass', from: 600, to: 60 } },
+      // the swoop: the world dropping away
+      { dur: 56, gain: 0.17, noise: { filter: 'lowpass', from: 2600, to: 90, q: 0.9 } },
+      { dur: 50, gain: 0.2, osc: { type: 'sine', from: 240, to: 34 } },
       // the ringing in your ears
-      { dur: 110, gain: 0.05, delay: 6, osc: { type: 'sine', from: 3100, to: 2900 } },
+      { dur: 110, gain: 0.03, delay: 6, osc: { type: 'sine', from: 3100, to: 2900 } },
     ],
     fallback: [
       { dur: 50, gain: 1, osc: { type: 'sine', from: 60, to: 20 } },
@@ -240,8 +265,8 @@ export const SFX: Record<string, SfxRecipe> = {
     reverb: 0.25,
   },
   roundGo: {
-    samples: [S('clank-heavy', 0.8, [0.85, 0.95]), S('bell', 0.5, [0.75, 0.85]), S('boom', 0.5, [1.4, 1.6])],
-    body: [{ dur: 20, gain: 0.7, osc: { type: 'sine', from: 100, to: 40 } }],
+    samples: [S('hit-heavy', 0.5, [0.7, 0.8], { low: 8, lp: 4500 }), S('boom', 0.39, [1.2, 1.4], { low: 4 }), S('bell', 0.1, [0.6, 0.7], { lp: 2500 })],
+    body: [{ dur: 20, gain: 0.39, osc: { type: 'sine', from: 100, to: 40 } }],
     fallback: [{ dur: 18, gain: 0.2, osc: { type: 'sine', from: 880, to: 880 } }],
     reverb: 0.3,
   },
