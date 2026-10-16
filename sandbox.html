@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hollow · pose sandbox</title>
+    <script>
+      try {
+        var t = localStorage.getItem('hollow.theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        var q = new URLSearchParams(location.search).get('theme'); // ?theme=light|dark overrides
+        if (q === 'light' || q === 'dark') t = q;
+        document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+  </head>
+  <body class="sandbox">
+    <header>
+      <b>hollow · pose sandbox</b>
+      <label>animation <select id="anim"></select></label>
+      <label><input type="checkbox" id="play" checked /> play</label>
+      <input type="range" id="scrub" min="0" max="100" step="0.1" value="0" />
+      <span id="time"></span>
+      <a href="/">game</a>
+    </header>
+    <main>
+      <section id="grid"></section>
+      <aside>
+        <h3 id="sel">pick a pose</h3>
+        <svg id="big" viewBox="-160 -230 320 260"></svg>
+        <div id="sliders"></div>
+        <button id="copy">copy as code</button>
+        <pre id="code"></pre>
+      </aside>
+    </main>
+    <script type="module" src="/src/dev/sandbox.ts"></script>
+  </body>
+</html>

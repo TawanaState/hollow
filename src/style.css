@@ -1,0 +1,744 @@
+/* ───────────────────────────── THEME TOKENS ─────────────────────────────
+   Every colour in the game lives here. To restyle, change these; nothing else
+   needs touching. [data-theme] on <html> picks the set (see client/theme.ts). */
+:root,
+:root[data-theme='light'] {
+  --sky-top: #f6f6f8;
+  --sky-bottom: #dcdce2;
+  --floor: #ececf0;
+  --floor-line: #1a1a1f;
+  --ring: #111116;
+  --ring-opacity: 0.07;
+
+  --p1: #e5202e;
+  --p2: #14141a;
+  --ghost-opacity: 1;
+  --shadow: #000;
+
+  --ink: #111116;
+  --text: #111116;
+  --text-dim: #6a6a75;
+  --panel: rgba(246, 246, 248, 0.88);
+  --panel-line: rgba(17, 17, 22, 0.14);
+
+  --hp: #111116;
+  --hp-ghost: #e5202e;
+  --hp-track: rgba(17, 17, 22, 0.14);
+  --guard: #6a7a92;
+  --guard-low: #e5202e;
+  --energy: #b88a1f;
+  --energy-full: #111116;
+
+  --spark: #111116;
+  --spark-core: #ffffff;
+  --dust: #7c7c86;
+  --pop: #111116;
+  --pop-outline: #ffffff;
+  --dbg-hurt: #1d6fe0;
+  --dbg-hit: #e5202e;
+
+  --logo-ink: #0e0e12;
+  --logo-paper: #f6f6f8;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --sky-top: #07070a;
+  --sky-bottom: #17171d;
+  --floor: #101015;
+  --floor-line: #e8e8ee;
+  --ring: #f2f2f6;
+  --ring-opacity: 0.08;
+
+  --p1: #ff3c4a;
+  --p2: #f2f2f6;
+  --shadow: #000;
+
+  --ink: #f2f2f6;
+  --text: #f2f2f6;
+  --text-dim: #8d8d9a;
+  --panel: rgba(12, 12, 16, 0.88);
+  --panel-line: rgba(242, 242, 246, 0.16);
+
+  --hp: #f2f2f6;
+  --hp-ghost: #ff3c4a;
+  --hp-track: rgba(242, 242, 246, 0.14);
+  --guard: #8c9cb6;
+  --guard-low: #ff3c4a;
+  --energy: #e0b040;
+  --energy-full: #f2f2f6;
+
+  --spark: #f2f2f6;
+  --spark-core: #07070a;
+  --dust: #8d8d9a;
+  --pop: #f2f2f6;
+  --pop-outline: #07070a;
+  --dbg-hurt: #5aa2ff;
+  --dbg-hit: #ff3c4a;
+
+  --logo-ink: #f2f2f6;
+  --logo-paper: #07070a;
+  color-scheme: dark;
+}
+
+/* ───────────────────────────── BASE ───────────────────────────── */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  position: fixed;
+  inset: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+  -webkit-text-size-adjust: 100%;
+  background: var(--sky-top);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+#app {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+#stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+[hidden] {
+  display: none !important;
+}
+
+/* ───────────────────────────── STAGE (SVG) ───────────────────────────── */
+.bg-ring {
+  fill: none;
+  stroke: var(--ring);
+  stroke-width: 10;
+  opacity: var(--ring-opacity);
+}
+.floor-line {
+  stroke: var(--floor-line);
+  stroke-width: 3;
+  opacity: 0.55;
+}
+.shadow {
+  fill: var(--shadow);
+}
+.fig polyline,
+.fig path {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.fig circle {
+  fill: var(--c);
+}
+.fig.p1 {
+  --c: var(--p1);
+}
+.fig.p2 {
+  --c: var(--p2);
+}
+.fig.ghost {
+  filter: none;
+}
+.fx-ray {
+  fill: var(--spark);
+}
+.fx-core {
+  fill: var(--spark-core);
+  stroke: var(--spark);
+  stroke-width: 3;
+}
+.fx-ring {
+  fill: none;
+  stroke: var(--spark);
+}
+.fx-dust {
+  fill: var(--dust);
+}
+.fx-text {
+  font-family: 'Impact', 'Arial Black', 'Segoe UI', sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: 2px;
+  fill: var(--pop);
+  stroke: var(--pop-outline);
+  stroke-width: 8px;
+  paint-order: stroke;
+  stroke-linejoin: round;
+}
+.dbg-hurt {
+  fill: none;
+  stroke: var(--dbg-hurt);
+  stroke-width: 2;
+}
+.dbg-hit {
+  fill: var(--dbg-hit);
+  fill-opacity: 0.35;
+  stroke: var(--dbg-hit);
+  stroke-width: 2;
+}
+.dbg-hit-idle {
+  fill: none;
+  stroke: var(--dbg-hit);
+  stroke-width: 1;
+  stroke-dasharray: 6 4;
+}
+.dbg-text {
+  font: 700 18px monospace;
+  fill: var(--text);
+}
+.dbg-wall {
+  stroke: var(--dbg-hit);
+  stroke-dasharray: 8 6;
+  opacity: 0.5;
+}
+
+/* ───────────────────────────── SCREEN EFFECTS ───────────────────────────── */
+.fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity;
+}
+.fx-flash {
+  background: #fff;
+}
+/* Impact frame: white difference-blended over everything = instant colour inversion. */
+.fx-invert {
+  background: #fff;
+  mix-blend-mode: difference;
+}
+.fx-vignette {
+  background: radial-gradient(ellipse at center, transparent 40%, var(--ink) 130%);
+}
+.fx-focus {
+  background: repeating-conic-gradient(from 0deg at 50% 52%, var(--ink) 0deg 1.6deg, transparent 1.6deg 6deg);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 52%, transparent 28%, #000 85%);
+  mask-image: radial-gradient(ellipse at 50% 52%, transparent 28%, #000 85%);
+}
+.fx-speed {
+  background: repeating-linear-gradient(0deg, transparent 0 22px, var(--ink) 22px 24px, transparent 24px 61px, var(--ink) 61px 62px);
+  -webkit-mask-image: linear-gradient(90deg, #000, transparent 30%, transparent 70%, #000);
+  mask-image: linear-gradient(90deg, #000, transparent 30%, transparent 70%, #000);
+}
+
+/* ───────────────────────────── HUD ───────────────────────────── */
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  padding: max(14px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 0 max(18px, env(safe-area-inset-left));
+}
+.bar {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  width: min(40vw, 560px);
+}
+.bar[data-p='0'] {
+  left: max(18px, env(safe-area-inset-left));
+}
+.bar[data-p='1'] {
+  right: max(18px, env(safe-area-inset-right));
+  text-align: right;
+}
+.bar .name {
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.bar[data-p='0'] .name {
+  color: var(--p1);
+}
+.bar .hp,
+.bar .guard,
+.bar .energy {
+  position: relative;
+  background: var(--hp-track);
+  overflow: hidden;
+  transform: skewX(-18deg);
+}
+.bar[data-p='1'] .hp,
+.bar[data-p='1'] .guard,
+.bar[data-p='1'] .energy {
+  transform: skewX(18deg);
+}
+.bar .hp {
+  height: 16px;
+  border: 2px solid var(--hp);
+}
+.bar i {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  display: block;
+}
+.bar[data-p='1'] i {
+  transform-origin: right center;
+}
+.bar .hp .fill {
+  background: var(--hp);
+}
+.bar .hp .ghost {
+  background: var(--hp-ghost);
+}
+.bar .sub {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+.bar[data-p='1'] .sub {
+  flex-direction: row-reverse;
+}
+.bar .guard,
+.bar .energy {
+  height: 6px;
+  flex: 1;
+}
+.bar .guard i {
+  background: var(--guard);
+}
+.bar .guard.low i {
+  background: var(--guard-low);
+}
+.bar .energy i {
+  background: var(--energy);
+}
+.bar .energy.full i {
+  background: var(--energy-full);
+}
+.bar .score {
+  min-width: 36px;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+}
+
+.combo {
+  position: absolute;
+  top: 110px;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-style: italic;
+  font-size: 34px;
+  letter-spacing: 2px;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.18s;
+}
+.combo b {
+  font-size: 64px;
+  margin-right: 6px;
+}
+.combo small {
+  display: block;
+  font: 600 14px 'Segoe UI', sans-serif;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+}
+.combo[data-p='0'] {
+  left: max(24px, env(safe-area-inset-left));
+}
+.combo[data-p='1'] {
+  right: max(24px, env(safe-area-inset-right));
+  text-align: right;
+}
+.combo.show {
+  opacity: 1;
+  animation: pop 0.22s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes pop {
+  from {
+    transform: scale(1.5) rotate(-4deg);
+  }
+  to {
+    transform: scale(1) rotate(-4deg);
+  }
+}
+
+#banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 32%;
+  text-align: center;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-style: italic;
+  font-size: clamp(56px, 11vw, 150px);
+  letter-spacing: 6px;
+  opacity: 0;
+}
+#banner.show {
+  animation: banner 1.3s ease-out both;
+}
+#banner.go.show {
+  animation-duration: 0.8s;
+}
+#banner.ko.show {
+  animation-duration: 2.6s;
+  font-size: clamp(80px, 16vw, 220px);
+}
+@keyframes banner {
+  0% {
+    opacity: 0;
+    transform: scale(2.2) skewX(-10deg);
+  }
+  14% {
+    opacity: 1;
+    transform: scale(1) skewX(-10deg);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.04) skewX(-10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12) skewX(-10deg);
+  }
+}
+#status {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+
+/* ───────────────────────────── TOOLBAR ───────────────────────────── */
+#toolbar {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+#toolbar button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--panel-line);
+  background: var(--panel);
+  font-size: 15px;
+  line-height: 1;
+}
+#toolbar button:hover {
+  border-color: var(--ink);
+}
+
+/* ───────────────────────────── MENU ───────────────────────────── */
+#menu {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--sky-top) 55%, transparent);
+  backdrop-filter: blur(4px);
+}
+#menu.closed {
+  display: none;
+}
+.panel {
+  width: min(92vw, 440px);
+  max-height: 96vh;
+  overflow: auto;
+  padding: 18px 26px 22px;
+  text-align: center;
+  background: var(--panel);
+  border: 1.5px solid var(--panel-line);
+}
+#logo svg {
+  width: min(52vw, 210px);
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+.panel h1 {
+  margin: -6px 0 0;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 44px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  padding-left: 0.3em;
+}
+.tag {
+  margin: 2px 0 16px;
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.buttons {
+  display: grid;
+  gap: 8px;
+}
+.buttons button {
+  padding: 12px;
+  border: 2px solid var(--ink);
+  background: transparent;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+.buttons button.primary,
+.buttons button:hover {
+  background: var(--ink);
+  color: var(--sky-top);
+}
+.online {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 8px;
+}
+.brand { display: block; }
+.side { display: block; }
+details.server {
+  text-align: left;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+details.server summary {
+  cursor: pointer;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 0;
+}
+details.server input {
+  width: 100%;
+  margin: 6px 0 4px;
+  padding: 8px;
+  border: 2px solid var(--panel-line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+.online input {
+  min-width: 0;
+  padding: 10px;
+  border: 2px solid var(--panel-line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+.keys {
+  width: 100%;
+  margin-top: 16px;
+  font-size: 11px;
+  border-collapse: collapse;
+  color: var(--text-dim);
+}
+.keys th,
+.keys td {
+  padding: 3px 4px;
+  border-top: 1px solid var(--panel-line);
+}
+.keys td:first-child {
+  text-align: left;
+}
+.hint {
+  margin: 10px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+/* ───────────────────────────── TOUCH CONTROLS ─────────────────────────────
+   Laid over the game view, translucent so the fight shows through. Nothing here scrolls. */
+#touch {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+.stick-zone {
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 0;
+  width: 46%;
+  pointer-events: auto;
+  touch-action: none;
+}
+.stick-hint {
+  position: absolute;
+  left: max(28px, env(safe-area-inset-left));
+  bottom: max(26px, env(safe-area-inset-bottom));
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  border: 2px dashed var(--panel-line);
+  display: grid;
+  place-items: center;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.stick-hint span {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: center;
+  padding: 0 14px;
+}
+.stick-zone.active .stick-hint {
+  opacity: 0;
+}
+.stick-base {
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  margin: -64px 0 0 -64px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  opacity: 0;
+  transition: opacity 0.1s;
+  pointer-events: none;
+}
+.stick-zone.active .stick-base {
+  opacity: 0.55;
+}
+.stick-base i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.8;
+}
+.acts button {
+  position: absolute;
+  pointer-events: auto;
+  touch-action: none;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: color-mix(in srgb, var(--sky-top) 40%, transparent);
+  color: var(--ink);
+  opacity: 0.55;
+  transition: opacity 0.08s, transform 0.08s, background 0.08s;
+  padding: 0;
+}
+.acts button b {
+  font: 800 22px/1 'Segoe UI', system-ui, sans-serif;
+}
+.acts button small {
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.acts button.down {
+  opacity: 1;
+  transform: scale(0.92);
+  background: var(--ink);
+  color: var(--sky-top);
+}
+/* arc under the right thumb: light is the thumb's rest spot */
+.a-light { right: max(18px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); width: 92px; height: 92px; }
+.a-heavy { right: calc(max(18px, env(safe-area-inset-right)) + 104px); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 12px); width: 80px; height: 80px; }
+.a-skill { right: calc(max(18px, env(safe-area-inset-right)) + 6px); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 104px); width: 74px; height: 74px; }
+.a-guard { right: calc(max(18px, env(safe-area-inset-right)) + 94px); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 100px); width: 68px; height: 68px; }
+.a-dash { right: calc(max(18px, env(safe-area-inset-right)) + 190px); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 38px); width: 66px; height: 66px; }
+
+/* ───────────────────────────── ROTATE HINT ───────────────────────────── */
+#rotate {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: var(--sky-top);
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  text-align: center;
+}
+#rotate p {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+#rotate .phone {
+  width: 54px;
+  height: 92px;
+  border: 4px solid var(--ink);
+  border-radius: 10px;
+  animation: turn 2.4s ease-in-out infinite;
+}
+@keyframes turn {
+  0%, 20% { transform: rotate(0deg); }
+  60%, 100% { transform: rotate(-90deg); }
+}
+@media (pointer: coarse) and (orientation: portrait) {
+  #rotate { display: grid; }
+}
+
+/* ───────────────────────────── PHONES IN LANDSCAPE ───────────────────────────── */
+@media (pointer: coarse), (max-height: 560px) {
+  .bar { width: 38vw; top: max(8px, env(safe-area-inset-top)); }
+  .bar .name { font-size: 11px; margin-bottom: 2px; }
+  .bar .hp { height: 12px; border-width: 2px; }
+  .bar .sub { margin-top: 4px; }
+  .combo { top: 70px; font-size: 24px; }
+  .combo b { font-size: 44px; }
+  #toolbar { top: max(8px, env(safe-area-inset-top)); }
+  #toolbar button { width: 30px; height: 30px; font-size: 13px; }
+  #status { bottom: 6px; font-size: 11px; }
+}
+@media (max-height: 520px) {
+  .panel {
+    width: min(94vw, 760px);
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 6px 22px;
+    align-items: center;
+    padding: 12px 22px;
+  }
+  #logo svg { width: min(26vh, 120px); }
+  .panel h1 { font-size: 30px; margin-top: -2px; }
+  .tag { margin-bottom: 4px; }
+  .keys, .keys-hint { display: none; }
+  .buttons { gap: 6px; }
+  .buttons button { padding: 9px; }
+}
+@media (pointer: coarse) {
+  .keys, .keys-hint { display: none; }
+}

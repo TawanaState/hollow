@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#f6f6f8" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="hollow" />
+    <meta name="description" content="hollow: a fast, minimal, anime-feeling stickman fighter for two." />
+    <title>hollow</title>
+    <script>
+      // Apply the saved theme before first paint so there is no flash.
+      try {
+        var t = localStorage.getItem('hollow.theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        var q = new URLSearchParams(location.search).get('theme'); // ?theme=light|dark overrides
+        if (q === 'light' || q === 'dark') t = q;
+        document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- the SVG stage is inserted here by the renderer -->
+      <div class="fx fx-vignette"></div>
+      <div class="fx fx-focus"></div>
+      <div class="fx fx-speed"></div>
+      <div class="fx fx-flash"></div>
+      <div class="fx fx-invert"></div>
+
+      <div id="hud">
+        <div class="bar" data-p="0">
+          <div class="name"></div>
+          <div class="hp"><i class="ghost"></i><i class="fill"></i></div>
+          <div class="sub">
+            <div class="guard"><i></i></div>
+            <div class="energy"><i></i></div>
+            <span class="score"></span>
+          </div>
+        </div>
+        <div class="bar" data-p="1">
+          <div class="name"></div>
+          <div class="hp"><i class="ghost"></i><i class="fill"></i></div>
+          <div class="sub">
+            <div class="guard"><i></i></div>
+            <div class="energy"><i></i></div>
+            <span class="score"></span>
+          </div>
+        </div>
+        <div class="combo" data-p="0"></div>
+        <div class="combo" data-p="1"></div>
+        <div id="banner"></div>
+        <div id="status" hidden></div>
+      </div>
+
+      <!-- touch controls: a floating stick on the left, action buttons on the right -->
+      <div id="touch" hidden>
+        <div class="stick-zone">
+          <div class="stick-hint"><span>move · jump · crouch</span></div>
+          <div class="stick-base"><i></i></div>
+        </div>
+        <div class="acts">
+          <button class="a-light" data-btn="LIGHT"><b>L</b><small>light</small></button>
+          <button class="a-heavy" data-btn="HEAVY"><b>H</b><small>heavy</small></button>
+          <button class="a-skill" data-btn="SKILL"><b>S</b><small>skill</small></button>
+          <button class="a-guard" data-btn="GUARD"><b>G</b><small>guard</small></button>
+          <button class="a-dash" data-btn="DASH"><b>D</b><small>dash</small></button>
+        </div>
+      </div>
+
+      <div id="toolbar">
+        <button id="btn-theme" title="Toggle dark / light (T)" aria-label="theme">◐</button>
+        <button id="btn-sound" title="Mute (M)" aria-label="sound">♪</button>
+        <button id="btn-full" title="Fullscreen (F)" aria-label="fullscreen" hidden>⛶</button>
+        <button id="btn-menu" title="Menu (Esc)" aria-label="menu">☰</button>
+      </div>
+
+      <div id="menu">
+        <div class="panel">
+          <div class="brand">
+            <div id="logo" aria-label="hollow"></div>
+            <h1>hollow</h1>
+            <p class="tag">fast. minimal. anime.</p>
+          </div>
+          <div class="side">
+            <div class="buttons">
+              <button class="primary" id="go-local">Local 2 players</button>
+              <button id="go-training">Training dummy</button>
+              <div class="online">
+                <input id="room" value="lobby" maxlength="24" spellcheck="false" autocapitalize="off" aria-label="room code" />
+                <button id="go-online">Play online</button>
+              </div>
+              <details class="server">
+                <summary>Online server</summary>
+                <input id="server" placeholder="same as this page" spellcheck="false" autocapitalize="off" aria-label="server address" />
+                <small>Only needed if this page is hosted somewhere that cannot run the game server.</small>
+              </details>
+              <button id="btn-install" hidden>Install app</button>
+              <p id="install-hint" class="hint" hidden></p>
+            </div>
+            <table class="keys">
+              <tr><th></th><th>P1</th><th>P2</th></tr>
+              <tr><td>move / jump / crouch</td><td>A D W S</td><td>← → ↑ ↓</td></tr>
+              <tr><td>light · heavy · skill</td><td>J K L</td><td>, . /</td></tr>
+              <tr><td>guard · dash (hold)</td><td>U I</td><td>; '</td></tr>
+            </table>
+            <p class="hint keys-hint">T theme · M sound · F fullscreen · Esc menu · R restart · ` hitboxes</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="rotate">
+        <div class="phone"></div>
+        <p>Turn your phone sideways</p>
+      </div>
+    </div>
+    <script type="module" src="/src/client/main.ts"></script>
+  </body>
+</html>
